@@ -1,0 +1,52 @@
+version: "3.5"
+services:
+  zk-1:
+    image: confluentinc/cp-zookeeper:7.3.0
+    hostname: zk-1
+    ports:
+      - "2181:2181"
+    container_name: zk-1
+    volumes:
+      - ${CONTAINER_DATA:-./data}/zk-1/log:/var/lib/zookeeper/log
+      - ${CONTAINER_DATA:-./data}/zk-1/data:/var/lib/zookeeper/data
+    networks:
+      - kafka
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: "zk-1:2888:3888"
+
+  kafka-1:
+    image: confluentinc/cp-enterprise-kafka:7.3.0
+    hostname: kafka-1
+    ports:
+      - "9092:9092"
+    container_name: kafka-1
+    networks:
+      - kafka
+    depends_on:
+      - zk-1  
+    volumes:
+      - ${CONTAINER_DATA:-./data}/kafka-1:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 101
+      KAFKA_ZOOKEEPER_CONNECT: "zk-1:2181"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-1:9092"
+      KAFKA_AUTO_LEADER_REBALANCE_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=DEBUG,kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      # Needs more setup
+      # KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+      # CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      # CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "kafka-1:9092"
+      # CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      # CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: "PLAIN"
+
+networks:
+  kafka:

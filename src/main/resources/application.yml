@@ -1,0 +1,32 @@
+logging:
+  level:
+    root: WARN
+    com.giraone: INFO
+    # set the 4 lines to warn to suppress large config list output on startup
+    org.apache.kafka.common.config.AbstractConfig: WARN
+    org.apache.kafka.clients.admin.AdminClientConfig: WARN
+    org.apache.kafka.clients.producer.ProducerConfig: WARN
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ['health', 'loggers', 'metrics']
+
+spring:
+  application:
+    name: pipeline
+  kafka:
+    bootstrap-servers: 'localhost:9092'
+    consumer:
+      group-id: pipeline
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  jmx:
+    enabled: true
+
+application:
+  topic-input: 'topic-1'
+  topic-output: 'topic-2'
