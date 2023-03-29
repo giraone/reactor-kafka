@@ -2,6 +2,12 @@
 
 Example Spring WebFlux project using reactive Kafka.
 
+There are 3 modes:
+
+- Producer (periodic source, Kafka sink)
+- Pipeline (Kafka source, Kafka sink)
+- Consumer (Kafka source, logger sink)
+
 ## Setup
 
 ### Kafka

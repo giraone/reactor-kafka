@@ -20,7 +20,6 @@ spring:
   kafka:
     bootstrap-servers: 'localhost:9092'
     consumer:
-      group-id: pipeline
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -28,5 +27,5 @@ spring:
     enabled: true
 
 application:
-  topic-input: 'topic-1'
-  topic-output: 'topic-2'
+  topic-1: 'topic-1'
+  topic-2: 'topic-2'

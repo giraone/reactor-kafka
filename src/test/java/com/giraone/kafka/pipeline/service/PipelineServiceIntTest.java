@@ -31,27 +31,27 @@ class PipelineServiceIntTest extends AbstractKafkaIntTest {
     protected void setUp() {
         LOGGER.debug("PipelineServiceIntTest.setUp");
 
-        createNewTopic(applicationProperties.getTopicInput());
-        createNewTopic(applicationProperties.getTopicOutput());
+        createNewTopic(applicationProperties.getTopic1());
+        createNewTopic(applicationProperties.getTopic2());
 
-        this.waitForTopic(applicationProperties.getTopicInput(), true);
+        this.waitForTopic(applicationProperties.getTopic1(), true);
 
-        consumer = createConsumer(applicationProperties.getTopicOutput());
-        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopicOutput());
+        consumer = createConsumer(applicationProperties.getTopic1());
+        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopic1());
     }
 
     @AfterEach
     public void tearDown() {
         if (consumer != null) {
             consumer.close();
-            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopicOutput());
+            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopic1());
         }
     }
 
     @Test
     void passOneEvent() throws Exception {
 
-        String topic = applicationProperties.getTopicInput();
+        String topic = applicationProperties.getTopic1();
         String messageKey = Long.toString(System.currentTimeMillis());
         String messageBody = "Eins";
         try (ReactiveKafkaProducerTemplate<String, String> template = new ReactiveKafkaProducerTemplate<>(senderOptions)) {

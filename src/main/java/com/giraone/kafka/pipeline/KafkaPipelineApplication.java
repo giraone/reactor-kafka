@@ -21,12 +21,6 @@ public class KafkaPipelineApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaPipelineApplication.class);
 
-    private final Environment env;
-
-    public KafkaPipelineApplication(Environment env) {
-        this.env = env;
-    }
-
     /**
      * Main method, used to run the application.
      *

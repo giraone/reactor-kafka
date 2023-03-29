@@ -13,17 +13,22 @@ public class KafkaProducerConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProducerConfig.class);
 
+    private final ApplicationProperties applicationProperties;
+
     public KafkaProducerConfig(ApplicationProperties applicationProperties) {
-        LOGGER.info("Output topic is: {}", applicationProperties.getTopicOutput());
+        this.applicationProperties = applicationProperties;
     }
 
     @Bean
     public SenderOptions<String, String> kafkaSenderOptions(KafkaProperties kafkaProperties) {
 
-        SenderOptions<String, String> basicSenderOptions = SenderOptions
+        final SenderOptions<String, String> basicSenderOptions = SenderOptions
             .create(kafkaProperties.buildProducerProperties());
-
-        SenderOptions<String, String> ret = basicSenderOptions;
+        final SenderOptions<String, String> ret = basicSenderOptions
+            .maxInFlight(256); // is default
+        //if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
+            ret.scheduler(SchedulerConfig.scheduler);
+        //}
         LOGGER.info("SenderOptions defined by bean of {}", this.getClass().getSimpleName());
         return ret;
     }

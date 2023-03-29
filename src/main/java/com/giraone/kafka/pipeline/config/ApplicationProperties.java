@@ -20,8 +20,11 @@ import java.time.Duration;
 public class ApplicationProperties {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationProperties.class);
-    public static final String DEFAULT_INPUT_TOPIC = "topic-1";
-    public static final String DEFAULT_OUTPUT_TOPIC = "topic-2";
+    public static final String DEFAULT_TOPIC_1 = "topic-1";
+    public static final String DEFAULT_TOPIC_2 = "topic-2";
+    public static final String MODE_PIPELINE = "pipeline";
+    public static final String MODE_CONSUME = "consume";
+    public static final String MODE_PRODUCE = "produce";
 
     /**
      * Log the configuration to the log on startup
@@ -36,13 +39,17 @@ public class ApplicationProperties {
      */
     private boolean debugAgent;
     /**
-     * Input topic.
+     * Mode: produce, pipeline, consume
      */
-    private String topicInput = DEFAULT_INPUT_TOPIC;
+    private String mode = MODE_PIPELINE;
     /**
      * Input topic.
      */
-    private String topicOutput = DEFAULT_OUTPUT_TOPIC;
+    private String topic1 = DEFAULT_TOPIC_1;
+    /**
+     * Input topic.
+     */
+    private String topic2 = DEFAULT_TOPIC_2;
 
     private CommitProperties commitProperties = new CommitProperties();
 
