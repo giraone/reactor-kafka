@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: ['health', 'loggers', 'metrics']
+        include: ['health', 'loggers', 'metrics', 'prometheus']
 
 spring:
   application:
@@ -29,3 +29,6 @@ spring:
 application:
   topic-1: 'topic-1'
   topic-2: 'topic-2'
+  consumer-properties:
+    max-poll-records: 500  # Default 500.
+    max-poll-interval: 30s # Default 30s.
