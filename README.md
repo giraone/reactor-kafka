@@ -44,7 +44,7 @@ There are 3 solutions:
 2. send(receive().map(r -> transform(r)))
 3. receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
 
-Solution 1 does not start, when there are older, but no new events.
+Solution 1 and 3 do not start, when there are older events in topic, but no new events arrive!!!
 
 ### Threading
 

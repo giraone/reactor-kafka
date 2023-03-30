@@ -63,7 +63,7 @@ public class PipelineService implements CommandLineRunner {
             .send(
                 reactiveKafkaConsumerTemplate.receive()
                     .retryWhen(retry)
-                    .doOnNext(receiverRecord -> counterService.logRate("RCV", receiverRecord.partition()))
+                    .doOnNext(receiverRecord -> counterService.logRate("RCV", receiverRecord.partition(), receiverRecord.offset()))
                     // pass receiverOffset as correlation metadata to commit on send
                     .map(receiverRecord -> SenderRecord.create(transformRecord(receiverRecord), receiverRecord.receiverOffset())))
             .doOnNext(this::ack)
@@ -84,13 +84,16 @@ public class PipelineService implements CommandLineRunner {
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
             .flatMap(partitionFlux ->
                 partitionFlux.publishOn(scheduler)
-                    .doOnNext(receiverRecord -> counterService.logRate("RCV", receiverRecord.partition()))
+                    .doOnNext(receiverRecord -> counterService.logRate("RCV", receiverRecord.partition(), receiverRecord.offset()))
                     .flatMap(receiverRecord -> {
                         final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, receiverRecord.key(), receiverRecord.value());
                         return reactiveKafkaProducerTemplate.send(SenderRecord.create(producerRecord, receiverRecord.receiverOffset()));
                     })
                     .sample(applicationProperties.getConsumerProperties().getCommitInterval()) // Commit periodically
-                    .concatMap(senderResult -> senderResult.correlationMetadata().commit()))
+                    .concatMap(senderResult -> senderResult.correlationMetadata().commit()
+                        .doOnNext(unused -> {
+                            counterService.logRate("ACK", senderResult.correlationMetadata().topicPartition().partition(), senderResult.correlationMetadata().offset());
+                        })))
             .subscribe();
     }
 
@@ -100,7 +103,7 @@ public class PipelineService implements CommandLineRunner {
         if (applicationProperties.getTransformInterval() != null) {
             try {
                 Thread.sleep(applicationProperties.getTransformInterval().toMillis());
-                counterService.logRate("PRC", receiverRecord.partition());
+                counterService.logRate("PRC", receiverRecord.partition(), receiverRecord.offset());
             } catch (InterruptedException e) {
                 LOGGER.error("Transform interrupted!");
             }
@@ -122,6 +125,5 @@ public class PipelineService implements CommandLineRunner {
         } else {
             senderResult.correlationMetadata().commit().block();
         }
-        counterService.logRate("ACK", senderResult.correlationMetadata().topicPartition().partition());
     }
 }

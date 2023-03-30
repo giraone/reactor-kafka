@@ -59,7 +59,7 @@ public class ProduceService implements CommandLineRunner {
             .doOnNext(senderResult -> {
                 LOGGER.debug("  > k={}/t={}/p={}/o={}", senderResult.correlationMetadata(), senderResult.recordMetadata().topic(),
                     senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset());
-                counterService.logRate("SND", senderResult.recordMetadata().partition());
+                counterService.logRate("SND", senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset());
             })
             .doOnError(e -> LOGGER.error("Send failed", e))
             .subscribe();

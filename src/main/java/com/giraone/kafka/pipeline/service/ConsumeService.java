@@ -44,7 +44,7 @@ public class ConsumeService implements CommandLineRunner {
 
     protected void consume(ReceiverRecord<String, String> receiverRecord) {
 
-        counterService.logRate("RCV", receiverRecord.partition());
+        counterService.logRate("RCV", receiverRecord.partition(), receiverRecord.offset());
     }
     protected void ack(ReceiverRecord<String, String> receiverRecord) {
 
@@ -53,6 +53,6 @@ public class ConsumeService implements CommandLineRunner {
         } else {
             receiverRecord.receiverOffset().commit().block();
         }
-        counterService.logRate("ACK", receiverRecord.partition());
+        counterService.logRate("ACK", receiverRecord.partition(), receiverRecord.offset());
     }
 }
