@@ -22,10 +22,9 @@ public class PipeExactlyOnceService extends AbstractPipeService {
     //------------------------------------------------------------------------------------------------------------------
 
     @Override
-    public void start() { // receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
+    public void start() {
 
-        TransactionManager transactionManager = null;
-
+        final TransactionManager transactionManager = reactiveKafkaProducerTemplate.transactionManager();
         reactiveKafkaConsumerTemplate.receiveExactlyOnce(transactionManager)
             .retryWhen(retry)
             .concatMap(consumerRecordFlux -> reactiveKafkaProducerTemplate.send(

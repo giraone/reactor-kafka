@@ -37,7 +37,7 @@ public class KafkaProducerConfig {
             .producerListener(listener) // we want standard Kafka metrics
             ;
 
-        if (applicationProperties.getMode().endsWith("ExactlyOnce")) {
+        if (applicationProperties.getMode().endsWith("Transactional")) {
             ret.producerProperty(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "PipeTxn");
         } else if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
             final Scheduler scheduler = Schedulers.newParallel("parallel",

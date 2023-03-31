@@ -8,9 +8,9 @@ import reactor.kafka.receiver.ReceiverOffset;
 import reactor.kafka.sender.SenderResult;
 
 @Service
-public class PipeSendReceiveService extends AbstractPipeService {
+public class PipeReceiveSendService extends AbstractPipeService {
 
-    public PipeSendReceiveService(
+    public PipeReceiveSendService(
         ApplicationProperties applicationProperties,
         ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
@@ -24,19 +24,15 @@ public class PipeSendReceiveService extends AbstractPipeService {
     @Override
     public void start() {
 
-        reactiveKafkaProducerTemplate
-            .send(
-                reactiveKafkaConsumerTemplate.receive()
-                    .retryWhen(retry)
-                    .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
-                    .map(receiverRecord -> transformToSenderRecord(receiverRecord, topic2))
-            )
+        reactiveKafkaConsumerTemplate.receive()
+            .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
+
+            .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(transformToSenderRecord(receiverRecord, topic2)))
             .doOnNext(this::ack)
             .subscribe();
     }
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {
-
 
         if (applicationProperties.getConsumerProperties().isAutoCommit()) {
             senderResult.correlationMetadata().acknowledge();

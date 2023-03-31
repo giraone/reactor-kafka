@@ -14,7 +14,7 @@ import reactor.util.function.Tuples;
 import java.time.Duration;
 
 @Service
-public class ProduceService extends AbstractService {
+public class ProduceFlatMapService extends AbstractService {
 
     // One single thread is enough to generate numbers and System.currentTimeMillis() tupels
     private static final Scheduler schedulerForProduce = Schedulers.newParallel("generate", 1, true);
@@ -22,7 +22,7 @@ public class ProduceService extends AbstractService {
     private final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
     private final String topicOutput;
 
-    public ProduceService(
+    public ProduceFlatMapService(
         ApplicationProperties applicationProperties,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
         CounterService counterService
@@ -36,13 +36,11 @@ public class ProduceService extends AbstractService {
 
     @Override
     public void start() {
-
-        reactiveKafkaProducerTemplate.send(source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
-                .map(tuple -> {
-                    final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
-                    return SenderRecord.create(producerRecord, tuple.getT1());
-                })
-            )
+        source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
+            .flatMap(tuple -> {
+                final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
+                return reactiveKafkaProducerTemplate.send(SenderRecord.create(producerRecord, tuple.getT1()));
+            })
             .doOnNext(senderResult -> counterService.logRate("SEND", senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> LOGGER.error("Send failed", e))
             .subscribe();
