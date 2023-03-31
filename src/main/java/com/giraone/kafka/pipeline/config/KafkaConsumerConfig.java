@@ -27,10 +27,12 @@ public class KafkaConsumerConfig {
     public KafkaConsumerConfig(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
         LOGGER.info("Mode is: {}", applicationProperties.getMode());
-        this.topicInput = ApplicationProperties.MODE_PIPELINE.equals(applicationProperties.getMode())
-            ? applicationProperties.getTopic1()
-            : applicationProperties.getTopic2();
-        LOGGER.info("Input topic is: {}", topicInput);
+        this.topicInput = applicationProperties.getMode().equals(ApplicationProperties.MODE_CONSUME)
+            ? applicationProperties.getTopic2()
+            : applicationProperties.getTopic1();
+        if (!applicationProperties.getMode().equals(ApplicationProperties.MODE_PRODUCE)) {
+            LOGGER.info("Input topic is: {}", topicInput);
+        }
     }
 
     @Bean
@@ -64,6 +66,8 @@ public class KafkaConsumerConfig {
         // No subscription, when it is the sink (producer only)
         if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
             return basicReceiverOptions;
+        } else if (applicationProperties.getMode().endsWith("ExactlyOnce")) {
+            basicReceiverOptions.consumerProperty(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         }
 
         final MicrometerConsumerListener listener = new MicrometerConsumerListener(meterRegistry);
@@ -73,7 +77,7 @@ public class KafkaConsumerConfig {
             .consumerListener(listener) // we want standard Kafka metrics
             ;
         LOGGER.info("ReceiverOptions defined by bean of {} with topics={}, commitInterval={}, commitBatchSize={}, commitRetryInterval={}"
-            + ", {}={}, {}={}, {}={}",
+                + ", {}={}, {}={}, {}={}",
             this.getClass().getSimpleName(), inputTopics, ret.commitInterval(), ret.commitBatchSize(), ret.commitRetryInterval(),
             ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, props.get(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG),
             ConsumerConfig.MAX_POLL_RECORDS_CONFIG, props.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG),

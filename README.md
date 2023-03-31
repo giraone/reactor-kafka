@@ -1,12 +1,18 @@
 # Reactive Spring Boot Kafka
 
-Example Spring WebFlux project using reactive Kafka.
+Example Spring WebFlux project using [reactive Kafka](https://projectreactor.io/docs/kafka/release/reference/).
 
-There are 3 modes:
+There are the following application modes:
 
 - Producer (periodic source, Kafka sink)
-- Pipeline (Kafka source, Kafka sink)
+- Pipe (Kafka source, Kafka sink)
+  1. Pipe with `send(receive().map(r -> transform(r)))` (PipeSendReceive)
+  2. Pipe with `receive().flatMap(r -> send(transform(r))` (PipeReceiveSend)
+  3. Pipe with `receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())` (PipePartitioned)
+  4. Pipe with *exactly-once delivery* (PipeExactlyOnce)
 - Consumer (Kafka source, logger sink)
+
+Solution Pipe 2 and Pipe 3 do not start, when there are older events in topic, but no new events arrive!!!
 
 ## Setup
 
@@ -19,14 +25,6 @@ There are 3 modes:
 
 - For integration testing Kafka Testcontainers is used.
 
-## CLI testing
-
-```bash
-cd docker
-typeset -i i=0
-while (( i < 1000 )); do ./producer.sh $i:xxx; (( i+=1 )); done
-```
-
 ## Design decision
 
 ### Commit handling
@@ -35,16 +33,6 @@ Reactive Kafka supports multiple ways of acknowledging and committing offsets:
 
 1. acknowledging only and **periodic automatic commit** (based on commit interval and/or commit batch size)
 2. manual commits and disabling of automatic commit (`.commitInterval(Duration.ZERO)`and `.commitBatchSize(0)`)
-
-### Pipeline
-
-There are 3 solutions:
-
-1. receive().flatMap(r -> send(transform(r))
-2. send(receive().map(r -> transform(r)))
-3. receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
-
-Solution 1 and 3 do not start, when there are older events in topic, but no new events arrive!!!
 
 ### Threading
 
@@ -63,27 +51,29 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 - 700 ops for 0ms produce delay between each event
 
 ```
-2023-03-30T23:55:31.103+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/3: ops=161 total=831 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:31.112+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/1: ops=143 total=808 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:31.706+02:00  INFO 9404 --- [ender-896138248] c.g.k.pipeline.service.CounterService    : PRD/-: ops=642 total=3713 thread=reactor-kafka-sender-896138248
-2023-03-30T23:55:32.101+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/2: ops=145 total=967 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:32.104+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/0: ops=164 total=967 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:32.106+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/3: ops=137 total=969 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:32.126+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/1: ops=176 total=987 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:32.893+02:00  INFO 9404 --- [ender-896138248] c.g.k.pipeline.service.CounterService    : PRD/-: ops=647 total=4481 thread=reactor-kafka-sender-896138248
-2023-03-30T23:55:33.104+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/2: ops=171 total=1139 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:33.114+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/3: ops=148 total=1119 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:33.123+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/0: ops=176 total=1147 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:33.132+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/1: ops=172 total=1161 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:34.041+02:00  INFO 9404 --- [ender-896138248] c.g.k.pipeline.service.CounterService    : PRD/-: ops=668 total=5249 thread=reactor-kafka-sender-896138248
-2023-03-30T23:55:34.105+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/2: ops=161 total=1301 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:34.123+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/3: ops=169 total=1290 thread=kafka-producer-network-thread | producer-1
-2023-03-30T23:55:34.130+02:00  INFO 9404 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SND/0: ops=171 total=1320 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:57.841+02:00  INFO 1356 --- [nder-1601935322] c.g.k.pipeline.service.CounterService    : PROD/-: ops=221 offset=-1 total=257 thread=reactor-kafka-sender-1601935322
+2023-03-31T14:18:58.110+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops=55 offset=121613 total=56 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:58.119+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops=81 offset=121839 total=82 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:58.129+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops=67 offset=121849 total=69 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:58.145+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops=70 offset=119330 total=71 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:59.018+02:00  INFO 1356 --- [nder-1601935322] c.g.k.pipeline.service.CounterService    : PROD/-: ops=326 offset=-1 total=641 thread=reactor-kafka-sender-1601935322
+2023-03-31T14:18:59.125+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops=77 offset=121917 total=160 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:59.136+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops=88 offset=121938 total=158 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:59.146+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops=78 offset=121694 total=137 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:18:59.155+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops=93 offset=119424 total=165 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:00.123+02:00  INFO 1356 --- [nder-1601935322] c.g.k.pipeline.service.CounterService    : PROD/-: ops=347 offset=-1 total=1025 thread=reactor-kafka-sender-1601935322
+2023-03-31T14:19:00.127+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops=97 offset=122015 total=258 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:00.137+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops=81 offset=122020 total=240 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:00.147+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops=80 offset=121775 total=218 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:00.157+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops=88 offset=119513 total=254 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:01.137+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops=99 offset=122115 total=358 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:01.151+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops=125 offset=122147 total=367 thread=kafka-producer-network-thread | producer-1
+2023-03-31T14:19:01.157+02:00  INFO 1356 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops=97 offset=121873 total=316 thread=kafka-producer-network-thread | producer-1
 ```
 
-### Pipeline
+### Pipe
 
-- 600 ops for 0ms transform delay in each pipeline processing
+- 600 ops for 0ms transform delay in each pipe processing
 - 10 ops, when direct commit per event is used
 
 ```
@@ -146,8 +136,8 @@ with groupBy
 
 ## Config
 
-- [KafkaProducerConfig](src/main/java/com/giraone/kafka/pipeline/config/KafkaProducerConfig.java)
-- [KafkaConsumerConfig](src/main/java/com/giraone/kafka/pipeline/config/KafkaConsumerConfig.java)
+- [KafkaProducerConfig](src/main/java/com/giraone/kafka/pipe/config/KafkaProducerConfig.java)
+- [KafkaConsumerConfig](src/main/java/com/giraone/kafka/pipe/config/KafkaConsumerConfig.java)
 - [application.yml](src/main/resources/application.yml)
 - [pom.xml](pom.xml)
 
@@ -166,7 +156,7 @@ class ProduceService {
             .doOnNext(senderResult -> {
                 LOGGER.debug("  > t={}/p={}/o={}", senderResult.recordMetadata().topic(),
                     senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset());
-                counterService.logRate("SND", senderResult.recordMetadata().partition());
+                counterService.logRate("SEND", senderResult.recordMetadata().partition());
             })
             .doOnError(e -> LOGGER.error("Send failed", e))
             .subscribe();
@@ -174,14 +164,14 @@ class ProduceService {
 }
 ```
 
-### Pipeline
+### Pipe
 
 ```java
-class PipelineService {
+class PipeService {
     public void run(String... args) { // receive().flatMap(r -> send(transform(r))
         
         reactiveKafkaConsumerTemplate.receive()
-            .doOnNext(receiverRecord -> counterService.logRate("RCV", receiverRecord.partition()))
+            .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition()))
             .doOnNext(receiverRecord -> {
                 LOGGER.debug(">>> k={}/v={}", receiverRecord.key(), receiverRecord.value());
                 LOGGER.debug("  > t={}/p={}/o={}", receiverRecord.topic(), receiverRecord.partition(), receiverRecord.receiverOffset());

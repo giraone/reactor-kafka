@@ -21,9 +21,11 @@ public class CounterService {
     public void logRate(String metric, int partition, long offset) {
         logRate(metric, Integer.toString(partition), offset);
     }
+
     public void logRate(String metric) {
         logRate(metric, "-", -1);
     }
+
     public void logRate(String metric, String partition, long offset) {
 
         Map<String, BeforeAndNowCounter> counterPerPartition = counterPerMetric.get(metric);
@@ -41,7 +43,7 @@ public class CounterService {
         final long diffMs = now - counter.lastLog;
         if (diffMs > 1000L) {
             final long rate = (counter.value - counter.before) * 1000 / diffMs;
-            LOGGER.info("{}/{}: ops={} offset={} total={} thread={}", metric, partition, rate, offset, counter.value, Thread.currentThread().getName());
+            LOGGER.info("{}/{}: ops={} offset={} total={}", metric, partition, rate, offset, counter.value);
             counter.lastLog = now;
             counter.before = counter.value;
         }

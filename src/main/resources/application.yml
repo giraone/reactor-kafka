@@ -16,7 +16,7 @@ management:
 
 spring:
   application:
-    name: pipeline
+    name: pipe
   kafka:
     bootstrap-servers: 'localhost:9092'
     consumer:

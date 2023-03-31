@@ -1,6 +1,7 @@
 package com.giraone.kafka.pipeline.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -35,7 +36,10 @@ public class KafkaProducerConfig {
             .maxInFlight(1) // to keep ordering, prevent duplicate messages (and avoid data loss)
             .producerListener(listener) // we want standard Kafka metrics
             ;
-        if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
+
+        if (applicationProperties.getMode().endsWith("ExactlyOnce")) {
+            ret.producerProperty(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "PipeTxn");
+        } else if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
             final Scheduler scheduler = Schedulers.newParallel("parallel",
                 Runtime.getRuntime().availableProcessors() - 1);
             ret.scheduler(scheduler); // the producer should be as fast (parallel) as possible

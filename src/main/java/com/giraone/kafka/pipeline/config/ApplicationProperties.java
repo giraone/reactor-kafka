@@ -23,9 +23,9 @@ public class ApplicationProperties {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationProperties.class);
     public static final String DEFAULT_TOPIC_1 = "topic-1";
     public static final String DEFAULT_TOPIC_2 = "topic-2";
-    public static final String MODE_PIPELINE = "pipeline";
-    public static final String MODE_CONSUME = "consume";
-    public static final String MODE_PRODUCE = "produce";
+    public static final String MODE_PIPE = "pipe";
+    public static final String MODE_CONSUME = "Consume";
+    public static final String MODE_PRODUCE = "Produce";
 
     /**
      * Log the configuration to the log on startup
@@ -40,9 +40,9 @@ public class ApplicationProperties {
      */
     private boolean debugAgent;
     /**
-     * Mode: produce, pipeline, consume
+     * Mode: Produce, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
-    private String mode = MODE_PIPELINE;
+    private String mode = MODE_PIPE + "Partitioned";
     /**
      * Input topic.
      */
@@ -56,7 +56,7 @@ public class ApplicationProperties {
      */
     private Duration produceInterval = Duration.ofMillis(1);
     /**
-     * Working interval for pipeline service. E.g. 10ms: Transform step wil wait 10ms. Can be null.
+     * Working interval for pipe service. E.g. 10ms: Transform step wil wait 10ms. Can be null.
      */
     private Duration transformInterval = null;
     /**

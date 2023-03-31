@@ -22,7 +22,7 @@ management:
 
 spring:
   application:
-    name: pipeline-test
+    name: pipe-test
 
 application:
   topic-1: 'topic-1'

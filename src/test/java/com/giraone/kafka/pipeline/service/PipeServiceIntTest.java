@@ -18,9 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // because init() needs ConsumerService
-class PipelineServiceIntTest extends AbstractKafkaIntTest {
+class PipeServiceIntTest extends AbstractKafkaIntTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PipelineServiceIntTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipeServiceIntTest.class);
 
     @Autowired
     ApplicationProperties applicationProperties;
@@ -29,7 +29,7 @@ class PipelineServiceIntTest extends AbstractKafkaIntTest {
 
     @BeforeEach
     protected void setUp() {
-        LOGGER.debug("PipelineServiceIntTest.setUp");
+        LOGGER.debug("PipeServiceIntTest.setUp");
 
         createNewTopic(applicationProperties.getTopic1());
         createNewTopic(applicationProperties.getTopic2());
