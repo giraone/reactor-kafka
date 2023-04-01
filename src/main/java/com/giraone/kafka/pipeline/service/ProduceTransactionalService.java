@@ -36,6 +36,7 @@ public class ProduceTransactionalService extends AbstractService {
 
     @Override
     public void start() {
+
         source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
             .flatMap(tuple -> {
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());

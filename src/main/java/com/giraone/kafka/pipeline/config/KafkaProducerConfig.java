@@ -38,7 +38,10 @@ public class KafkaProducerConfig {
             ;
 
         if (applicationProperties.getMode().endsWith("Transactional")) {
-            ret.producerProperty(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "PipeTxn");
+            final String transactionalId = "PipeTxn";
+            LOGGER.info("TRANSACTIONS: transactionalId={}", transactionalId);
+            ret.producerProperty(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId);
+            ret.producerProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         } else if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
             final Scheduler scheduler = Schedulers.newParallel("parallel",
                 Runtime.getRuntime().availableProcessors() - 1);

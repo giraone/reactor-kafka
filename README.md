@@ -48,6 +48,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 - SEND on `kafka-producer-network-thread | producer-1`
 - PRODUCE on `reactor-kafka-sender-9999999`
+- Performance (all local): Total rate with 4 partitions approx. 650 events per second (produce only)
 
 ### ProducerFlatMap
 
@@ -56,27 +57,47 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 ### ProduceTransactional
 
-t.b.d.
-
-### PipeSendReceive
-
-- RECEIVE on `reactor-kafka-sender-9999`
-- TASK on `reactor-kafka-sender-9999`
+t.b.d.: *needs multiple topics*
 
 ### PipePartitioned
 
 - RECEIVE on `thread=worker-X` for each partition X
 - TASK on `thread=worker-X` for each partition X
 
+Performance (Kafka/service local, after 100.000 events available, pipe only):
+Total rate with 4 partitions approx. **33.000 events per second**.
+
 ### PipeReceiveSend
 
 - RECEIVE on `kafka-producer-network-thread | producer-1`
 - TASK on `kafka-producer-network-thread | producer-1`
 
+Performance (Kafka/service local, after 100.000 events available, pipe only):
+Total rate with 4 partitions approx. **71.000 events per second**.
+
+### PipeSendReceive
+
+- RECEIVE on `reactor-kafka-sender-9999`
+- TASK on `reactor-kafka-sender-9999`
+
+Performance (Kafka/service local, produce only):
+Total rate with 4 partitions approx. **650 events per second**.
+
+### PipeExactlyOnce
+
+- RECEIVE on `kafka-producer-network-thread | producer-1`
+- TASK on `kafka-producer-network-thread | producer-1`
+
+Performance (Kafka/service local, after 100.000 events available, pipe only):
+Total rate with 4 partitions approx. **x events per second**.
+
 ### Consume
 
 - RECEIVE on `reactive-kafka-Consume-1`
 - ACKNOWLEDGE on `reactive-kafka-Consume-1`
+
+Performance (Kafka/service local, after 100.000 events available, consume only):
+Total rate with 4 partitions approx. **1.000.000 events per second**.
 
 ## Config
 
