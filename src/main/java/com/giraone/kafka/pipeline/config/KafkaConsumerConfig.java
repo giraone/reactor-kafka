@@ -2,7 +2,7 @@ package com.giraone.kafka.pipeline.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.StickyAssignor;
+import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -40,15 +40,15 @@ public class KafkaConsumerConfig {
 
         final Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         // Always use the new StickyAssignor, to keep the assignments as balanced as possible
-        props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, StickyAssignor.class.getName());
+        props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName());
         // Group ID depends on the "mode"
         props.put(ConsumerConfig.GROUP_ID_CONFIG, applicationProperties.getMode());
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, applicationProperties.getConsumerProperties().getMaxPollRecords());
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, (int) applicationProperties.getConsumerProperties().getMaxPollInterval().toMillis());
-        final ReceiverOptions<String, String> basicReceiverOptions = ReceiverOptions
-            .create(props);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, applicationProperties.getConsumer().getMaxPollRecords());
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, (int) applicationProperties.getConsumer().getMaxPollInterval().toMillis());
 
-        final ApplicationProperties.ConsumerProperties consumerProperties = applicationProperties.getConsumerProperties();
+        final ReceiverOptions<String, String> basicReceiverOptions = ReceiverOptions.create(props);
+
+        final ApplicationProperties.ConsumerProperties consumerProperties = applicationProperties.getConsumer();
         if (consumerProperties.isAutoCommit()) {
             basicReceiverOptions
                 .commitInterval(consumerProperties.getCommitInterval())
@@ -70,18 +70,18 @@ public class KafkaConsumerConfig {
             basicReceiverOptions.consumerProperty(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         }
 
-        final MicrometerConsumerListener listener = new MicrometerConsumerListener(meterRegistry);
         final List<String> inputTopics = List.of(topicInput);
         final ReceiverOptions<String, String> ret = basicReceiverOptions
             .subscription(inputTopics)
-            .consumerListener(listener) // we want standard Kafka metrics
+            .consumerListener(new MicrometerConsumerListener(meterRegistry)) // we want standard Kafka metrics
             ;
         LOGGER.info("ReceiverOptions defined by bean of {} with topics={}, commitInterval={}, commitBatchSize={}, commitRetryInterval={}"
-                + ", {}={}, {}={}, {}={}",
+                + ", {}={}, {}={}, {}={}, {}={}",
             this.getClass().getSimpleName(), inputTopics, ret.commitInterval(), ret.commitBatchSize(), ret.commitRetryInterval(),
             ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, props.get(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG),
-            ConsumerConfig.MAX_POLL_RECORDS_CONFIG, props.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG),
-            ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, props.get(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG)
+            ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, props.get(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG),
+            ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, props.get(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG),
+            ConsumerConfig.MAX_POLL_RECORDS_CONFIG, props.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG)
         );
         return ret;
     }

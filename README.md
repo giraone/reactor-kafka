@@ -49,7 +49,15 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 - SEND on `kafka-producer-network-thread | producer-1`
 - PRODUCE on `reactor-kafka-sender-9999999`
 - Performance (all local): Total rate with 4 partitions approx. 650 events per second (produce only)
-
+- Performance (DATEV, 1 instance): Total rate with 16 partitions (produce only):
+  - ack=all: 270 ops / 16-17 ops/partition
+  - ack=1, batchsize=262144, linger=<not-set>: 610 ops
+  - ack=1, batchsize=262144: linger=0: 540 ops
+  - ack=1, batchsize=16384: 530 ops
+  - ack=0, batchsize=262144: inger=<not-set>: 12000 ops
+  - ack=1, linger=100: 9 ops (!)
+  - ack=1, batchsize=262144, linger=10: 82 ops
+    
 ### ProducerFlatMap
 
 - SEND on `kafka-producer-network-thread | producer-1`
@@ -64,9 +72,10 @@ t.b.d.: *needs multiple topics*
 - RECEIVE on `thread=worker-X` for each partition X
 - TASK on `thread=worker-X` for each partition X
 
-Performance (Kafka/service local, after 100.000 events available, pipe only):
-Total rate with 4 partitions approx. **33.000 events per second**.
-
+- Performance (Kafka/service local, after 100.000 events available, pipe only): Total rate with 4 partitions approx. **33.000 events per second**.
+- Performance (DATEV, after 100.000 events available, pipe only):
+  - 16 partitions / 16 Threads / 1 instance (commitBatchSize=10, maxPollRecords=500, maxPollInterval=PT30S): **33.000 events per second**.
+  - 16 partitions / 8 Threads / 2 instances (commitBatchSize=10, maxPollRecords=500, maxPollInterval=PT30S): **38.000 events per second**.
 ### PipeReceiveSend
 
 - RECEIVE on `kafka-producer-network-thread | producer-1`

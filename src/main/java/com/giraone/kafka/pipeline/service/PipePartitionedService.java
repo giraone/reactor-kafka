@@ -20,7 +20,7 @@ public class PipePartitionedService extends AbstractPipeService {
     ) {
         super(applicationProperties, reactiveKafkaConsumerTemplate, reactiveKafkaProducerTemplate, counterService);
         this.scheduler = Schedulers.newParallel("worker",
-            applicationProperties.getConsumerProperties().getThreads(), true);
+            applicationProperties.getConsumer().getThreads(), true);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -30,17 +30,17 @@ public class PipePartitionedService extends AbstractPipeService {
 
         reactiveKafkaConsumerTemplate.receive()
             .retryWhen(retry)
-            // Concurrent Processing with Partition-Based Ordering
+            // Concurrent processing with partition-based ordering
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
             .flatMap(partitionFlux ->
                 partitionFlux.publishOn(scheduler)
                     .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
                     .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(transformToSenderRecord(receiverRecord, topic2)))
-                    .sample(applicationProperties.getConsumerProperties().getCommitInterval()) // Commit periodically
+                    .sample(applicationProperties.getConsumer().getCommitInterval()) // Commit periodically
                     .concatMap(senderResult -> senderResult.correlationMetadata().commit()
-                        .doOnNext(unused -> {
-                            counterService.logRate("COMT", senderResult.correlationMetadata().topicPartition().partition(), senderResult.correlationMetadata().offset());
-                        })))
+                        .doOnNext(unused -> counterService.logRate("COMT",
+                            senderResult.correlationMetadata().topicPartition().partition(), senderResult.correlationMetadata().offset())))
+            )
             .subscribe();
     }
 }

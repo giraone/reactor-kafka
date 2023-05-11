@@ -38,7 +38,7 @@ public class PipeSendReceiveService extends AbstractPipeService {
     private void ack(SenderResult<ReceiverOffset> senderResult) {
 
 
-        if (applicationProperties.getConsumerProperties().isAutoCommit()) {
+        if (applicationProperties.getConsumer().isAutoCommit()) {
             senderResult.correlationMetadata().acknowledge();
         } else {
             senderResult.correlationMetadata().commit().block();

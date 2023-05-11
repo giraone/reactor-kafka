@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
@@ -56,7 +57,7 @@ public class KafkaPipelineApplication {
         MemoryUsage memoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         long xmx = memoryUsage.getMax() / 0x10000;
         long xms = memoryUsage.getInit() / 0x10000;
-
+        long direct = directMemory() / 0x10000;
         LOGGER.info("""
                 ----------------------------------------------------------
                 \t~~~ Application '{}' is running! Access URLs:
@@ -65,6 +66,7 @@ public class KafkaPipelineApplication {
                 \t~~~ Java version:      {} / {} by {}
                 \t~~~ Processors:        {}
                 \t~~~ Memory (xms/xmx):  {} MB / {} MB
+                \t~~~ Direct memory:     {} MB
                 \t~~~ Profile(s):        {}
                 \t~~~ Default charset:   {}
                 \t~~~ File encoding:     {}
@@ -79,10 +81,22 @@ public class KafkaPipelineApplication {
             contextPath,
             System.getProperty("java.version"), System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"),
             Runtime.getRuntime().availableProcessors(),
-            xms, xmx,
+            xms, xmx, direct,
             env.getActiveProfiles(),
             Charset.defaultCharset().displayName(),
             System.getProperty("file.encoding")
         );
+    }
+
+    private static long directMemory() {
+        long ret = 0L;
+        boolean found = false;
+        for (BufferPoolMXBean pool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
+            if ("direct".equals(pool.getName())) {
+                ret += pool.getTotalCapacity();
+                found = true;
+            }
+        }
+        return found ? ret : -1;
     }
 }

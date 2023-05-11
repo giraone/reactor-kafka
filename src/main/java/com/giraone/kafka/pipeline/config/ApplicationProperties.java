@@ -21,9 +21,12 @@ import java.time.Duration;
 public class ApplicationProperties {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationProperties.class);
+
+    private static final int KAFKA_RETRY_DEFAULT_NUMBER_OF_ATTEMPTS = 2;
+
     public static final String DEFAULT_TOPIC_1 = "topic-1";
     public static final String DEFAULT_TOPIC_2 = "topic-2";
-    public static final String MODE_PIPE = "pipe";
+    public static final String MODE_PIPE = "Pipe";
     public static final String MODE_CONSUME = "Consume";
     public static final String MODE_PRODUCE = "Produce";
 
@@ -60,9 +63,14 @@ public class ApplicationProperties {
      */
     private Duration transformInterval = null;
     /**
+     * Kafka producer properties.
+     */
+    private ProducerProperties producer = new ProducerProperties();
+    /**
      * Kafka consumer properties.
      */
-    private ConsumerProperties consumerProperties = new ConsumerProperties();
+    private ConsumerProperties consumer = new ConsumerProperties();
+
 
     @SuppressWarnings("java:S2629") // invoke conditionally
     @PostConstruct
@@ -90,7 +98,24 @@ public class ApplicationProperties {
     @Getter
     @NoArgsConstructor
     @ToString
+    public static class ProducerProperties {
+        /** all = quorum (default), 1 = leader only, 0 = no ack */
+        private String acks = "all";
+        /** for performance increase to 100000–200000 (default 16384) */
+        private int batchSize = 16384;
+        /** **/
+        private Duration deliveryTimeout = Duration.ofMinutes(5);
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @ToString
     public static class ConsumerProperties {
+        /**
+         * Number of consumer threads, when PipePartitionedService is used
+         */
+        private int threads = 4;
         /**
          * Flag, whether auto-commit is used - default=false. If true commitInterval/commitBatchSize are used..
          **/
@@ -114,32 +139,30 @@ public class ApplicationProperties {
          * Note, that <code>max.poll.records</code> does not impact the underlying fetching behavior.
          * The consumer will cache the records from each fetch request and returns them incrementally from each poll.";
          */
-        private int maxPollRecords = 500;
+        private int maxPollRecords = 100;
         /**
          * The maximum delay between invocations of poll() when using consumer group management. Default = 30 seconds.
          * This places an upper bound on the amount of time that the consumer can be idle before fetching more records.";
          */
-        private Duration maxPollInterval = Duration.ofSeconds(30);
+        private Duration maxPollInterval = Duration.ofSeconds(10);
         /**
          * Retries, when inbound flux (consumer) fails.
          * Since in reactive streams an error represents a terminal signal, any error signal emitted in the inbound
          * Flux will cause the subscription to be cancelled and effectively cause the consumer to shut down.
          * This can be mitigated by using this retry.
          */
-        private RetrySpecification retrySpecification = new RetrySpecification();
-
-        private int threads = 4;
+        private RetrySpecificationKafka retrySpecification = new RetrySpecificationKafka();
     }
 
     @Setter
     @Getter
     @NoArgsConstructor
     @ToString
-    public static class RetrySpecification {
+    public static class RetrySpecificationKafka {
         /**
          * the maximum number of retry attempts to allow. Default = 3.
          */
-        private long maxAttempts = 3;
+        private long maxAttempts = KAFKA_RETRY_DEFAULT_NUMBER_OF_ATTEMPTS;
         /**
          * the minimum Duration for the first backoff, when exponential backoff is used. Default = 10 seconds.
          */

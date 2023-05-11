@@ -31,7 +31,7 @@ public abstract class AbstractPipeService extends AbstractService {
         this.reactiveKafkaConsumerTemplate = reactiveKafkaConsumerTemplate;
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
 
-        this.retry = applicationProperties.getConsumerProperties().getRetrySpecification().toRetry();
+        this.retry = applicationProperties.getConsumer().getRetrySpecification().toRetry();
     }
 
     protected abstract void start();

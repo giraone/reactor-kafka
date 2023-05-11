@@ -37,7 +37,7 @@ public class ConsumeService extends AbstractService {
 
     protected void ack(ReceiverRecord<String, String> receiverRecord) {
 
-        if (applicationProperties.getConsumerProperties().isAutoCommit()) {
+        if (applicationProperties.getConsumer().isAutoCommit()) {
             receiverRecord.receiverOffset().acknowledge();
         } else {
             receiverRecord.receiverOffset().commit().block();
