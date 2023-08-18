@@ -51,6 +51,7 @@ public class ProduceService extends AbstractService {
     protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {
 
         final int s = (int) (System.currentTimeMillis() / 1000L);
+        // Emit integers starting with actual epoch seconds
         return Flux.range(s, limit - s)
             .delayElements(delay, schedulerForProduce)
             .map(nr -> Tuples.of(Long.toString(nr), Long.toString(System.currentTimeMillis())))
