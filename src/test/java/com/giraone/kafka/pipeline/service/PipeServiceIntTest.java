@@ -35,9 +35,10 @@ class PipeServiceIntTest extends AbstractKafkaIntTest {
         createNewTopic(applicationProperties.getTopic2());
 
         this.waitForTopic(applicationProperties.getTopic1(), true);
+        this.waitForTopic(applicationProperties.getTopic2(), true);
 
-        consumer = createConsumer(applicationProperties.getTopic1());
-        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopic1());
+        consumer = createConsumer(applicationProperties.getTopic2());
+        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopic2());
     }
 
     @AfterEach
@@ -65,13 +66,11 @@ class PipeServiceIntTest extends AbstractKafkaIntTest {
 
             waitForMessages(consumer, 1);
 
-            receivedRecords.forEach(l -> {
-                l.forEach(record -> {
-                    LOGGER.info(record.key() + " -> " + record.value());
-                    assertThat(record.key()).isNotNull();
-                    assertThat(record.value()).contains("EINS");
-                });
-            });
+            receivedRecords.forEach(l -> l.forEach(record -> {
+                LOGGER.info(record.key() + " -> " + record.value());
+                assertThat(record.key()).isNotNull();
+                assertThat(record.value()).contains("EINS");
+            }));
         }
     }
 }
