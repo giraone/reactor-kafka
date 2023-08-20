@@ -20,7 +20,6 @@ public class ProduceService extends AbstractService {
     private static final Scheduler schedulerForProduce = Schedulers.newParallel("generate", 1, true);
 
     private final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
-    private final String topicOutput;
 
     public ProduceService(
         ApplicationProperties applicationProperties,
@@ -29,7 +28,6 @@ public class ProduceService extends AbstractService {
     ) {
         super(applicationProperties, counterService);
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
-        this.topicOutput = applicationProperties.getTopicOutput();
     }
 
     //------------------------------------------------------------------------------------------------------------------

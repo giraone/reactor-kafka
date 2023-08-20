@@ -29,7 +29,7 @@ public class PipeSendReceiveService extends AbstractPipeService {
                 reactiveKafkaConsumerTemplate.receive()
                     .retryWhen(retry)
                     .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
-                    .map(receiverRecord -> transformToSenderRecord(receiverRecord, topic2))
+                    .map(receiverRecord -> transformToSenderRecord(receiverRecord, topicOutput))
             )
             .doOnNext(this::ack)
             .subscribe();

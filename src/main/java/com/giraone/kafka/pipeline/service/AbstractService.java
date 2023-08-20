@@ -12,15 +12,15 @@ public abstract class AbstractService implements CommandLineRunner {
     protected final ApplicationProperties applicationProperties;
     protected final CounterService counterService;
 
-    protected final String topic1;
-    protected final String topic2;
+    protected final String topicInput;
+    protected final String topicOutput;
 
     public AbstractService(ApplicationProperties applicationProperties,
                            CounterService counterService) {
         this.applicationProperties = applicationProperties;
         this.counterService = counterService;
-        this.topic1 = applicationProperties.getTopicInput();
-        this.topic2 = applicationProperties.getTopicOutput();
+        this.topicInput = applicationProperties.getTopicInput();
+        this.topicOutput = applicationProperties.getTopicOutput();
     }
 
     protected abstract void start();

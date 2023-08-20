@@ -28,7 +28,7 @@ public class PipeExactlyOnceService extends AbstractPipeService {
         reactiveKafkaConsumerTemplate.receiveExactlyOnce(transactionManager)
             .retryWhen(retry)
             .concatMap(consumerRecordFlux -> reactiveKafkaProducerTemplate.send(
-                    consumerRecordFlux.map(consumerRecord -> transformToSenderRecord(consumerRecord, topic2))
+                    consumerRecordFlux.map(consumerRecord -> transformToSenderRecord(consumerRecord, topicOutput))
                 )
                 .concatWith(transactionManager.commit()))
             .onErrorResume(e -> transactionManager.abort().then(Mono.error(e)))

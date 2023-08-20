@@ -1,6 +1,6 @@
 #!/bin/bash
 
-topic=${1:-topic-2}
+topic=${1:-topic-output}
 
 docker exec kafka-1 kafka-console-consumer \
     --bootstrap-server kafka-1:9092 \
