@@ -24,8 +24,8 @@ public class ApplicationProperties {
 
     private static final int KAFKA_RETRY_DEFAULT_NUMBER_OF_ATTEMPTS = 2;
 
-    public static final String DEFAULT_TOPIC_1 = "topic-1";
-    public static final String DEFAULT_TOPIC_2 = "topic-2";
+    public static final String DEFAULT_TOPIC_A = "a-p1";
+    public static final String DEFAULT_TOPIC_B = "b-p1";
     public static final String MODE_PIPE = "Pipe";
     public static final String MODE_CONSUME = "Consume";
     public static final String MODE_PRODUCE = "Produce";
@@ -47,13 +47,17 @@ public class ApplicationProperties {
      */
     private String mode = MODE_PIPE + "Partitioned";
     /**
-     * Input topic.
+     * GroupId: PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
-    private String topic1 = DEFAULT_TOPIC_1;
+    private String groupId = MODE_PIPE + "Partitioned";
     /**
      * Input topic.
      */
-    private String topic2 = DEFAULT_TOPIC_2;
+    private String topicInput = DEFAULT_TOPIC_A;
+    /**
+     * Output topic.
+     */
+    private String topicOutput = DEFAULT_TOPIC_B;
     /**
      * Interval for producer service. E.g. 1ms => 64 Events per second.
      */

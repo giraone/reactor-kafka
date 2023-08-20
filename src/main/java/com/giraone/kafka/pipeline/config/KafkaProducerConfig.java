@@ -22,6 +22,9 @@ public class KafkaProducerConfig {
 
     public KafkaProducerConfig(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
+        if (!applicationProperties.getMode().equals(ApplicationProperties.MODE_CONSUME)) {
+            LOGGER.info("Output topic is: {}", applicationProperties.getTopicOutput());
+        }
     }
 
     @Bean

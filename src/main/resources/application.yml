@@ -31,8 +31,8 @@ spring:
     enabled: true
 
 application:
-  topic-1: 'topic-1'
-  topic-2: 'topic-2'
+  topic-input: 'a-p1'
+  topic-output: 'in-part2'
   consumer:
     max-poll-records: 500  # Default 500.
     max-poll-interval: 30s # Default 30s.

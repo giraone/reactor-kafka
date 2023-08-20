@@ -19,8 +19,7 @@ public class PipePartitionedService extends AbstractPipeService {
         CounterService counterService
     ) {
         super(applicationProperties, reactiveKafkaConsumerTemplate, reactiveKafkaProducerTemplate, counterService);
-        this.scheduler = Schedulers.newParallel("worker",
-            applicationProperties.getConsumer().getThreads(), true);
+        this.scheduler = Schedulers.newParallel("worker", applicationProperties.getConsumer().getThreads());
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -35,7 +34,8 @@ public class PipePartitionedService extends AbstractPipeService {
             .flatMap(partitionFlux ->
                 partitionFlux.publishOn(scheduler)
                     .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
-                    .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(transformToSenderRecord(receiverRecord, topic2)))
+                    .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(transformToSenderRecord(receiverRecord, topic2)),
+                        1, 1)
                     .sample(applicationProperties.getConsumer().getCommitInterval()) // Commit periodically
                     .concatMap(senderResult -> senderResult.correlationMetadata().commit()
                         .doOnNext(unused -> counterService.logRate("COMT",

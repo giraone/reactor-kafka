@@ -31,28 +31,28 @@ class PipeServiceIntTest extends AbstractKafkaIntTest {
     protected void setUp() {
         LOGGER.debug("PipeServiceIntTest.setUp");
 
-        createNewTopic(applicationProperties.getTopic1());
-        createNewTopic(applicationProperties.getTopic2());
+        createNewTopic(applicationProperties.getTopicInput());
+        createNewTopic(applicationProperties.getTopicOutput());
 
-        this.waitForTopic(applicationProperties.getTopic1(), true);
-        this.waitForTopic(applicationProperties.getTopic2(), true);
+        this.waitForTopic(applicationProperties.getTopicInput(), true);
+        this.waitForTopic(applicationProperties.getTopicOutput(), true);
 
-        consumer = createConsumer(applicationProperties.getTopic2());
-        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopic2());
+        consumer = createConsumer(applicationProperties.getTopicOutput());
+        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopicOutput());
     }
 
     @AfterEach
     public void tearDown() {
         if (consumer != null) {
             consumer.close();
-            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopic1());
+            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopicInput());
         }
     }
 
     @Test
     void passOneEvent() throws Exception {
 
-        String topic = applicationProperties.getTopic1();
+        String topic = applicationProperties.getTopicInput();
         String messageKey = Long.toString(System.currentTimeMillis());
         String messageBody = "Eins";
         try (ReactiveKafkaProducerTemplate<String, String> template = new ReactiveKafkaProducerTemplate<>(senderOptions)) {

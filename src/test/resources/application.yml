@@ -25,5 +25,5 @@ spring:
     name: pipe-test
 
 application:
-  topic-1: 'topic-1'
-  topic-2: 'topic-2'
+  topic-input: 'a-p1'
+  topic-output: 'in-part2'

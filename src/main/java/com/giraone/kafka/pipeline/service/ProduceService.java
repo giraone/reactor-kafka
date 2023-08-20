@@ -29,7 +29,7 @@ public class ProduceService extends AbstractService {
     ) {
         super(applicationProperties, counterService);
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
-        this.topicOutput = applicationProperties.getTopic1();
+        this.topicOutput = applicationProperties.getTopicOutput();
     }
 
     //------------------------------------------------------------------------------------------------------------------

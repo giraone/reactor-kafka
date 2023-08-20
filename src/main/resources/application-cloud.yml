@@ -1,0 +1,16 @@
+spring:
+  kafka:
+    bootstrap-servers: ${vcap.services.topic-perf-1.credentials.bootstrap-servers}
+    jaas:
+      enabled: true
+      control-flag: required
+    security:
+      protocol: ${vcap.services.topic-perf-1.credentials.security-protocol}
+    properties:
+      sasl:
+        mechanism: ${vcap.services.topic-perf-1.credentials.sasl-mechanism}
+        jaas.config: ${vcap.services.topic-perf-1.credentials.sasl-jaas-config}
+
+application:
+  topic-input: ${vcap.services.topic-perf-1.credentials.topic}
+  topic-output: ${vcap.services.topic-perf-2.credentials.topic}
