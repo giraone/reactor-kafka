@@ -26,4 +26,4 @@ spring:
 
 application:
   topic-input: 'a-p1'
-  topic-output: 'in-part2'
+  topic-output: 'b-p1'

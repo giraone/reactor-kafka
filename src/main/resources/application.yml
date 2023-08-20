@@ -32,7 +32,7 @@ spring:
 
 application:
   topic-input: 'a-p1'
-  topic-output: 'in-part2'
+  topic-output: 'b-p1'
   consumer:
     max-poll-records: 500  # Default 500.
     max-poll-interval: 30s # Default 30s.
