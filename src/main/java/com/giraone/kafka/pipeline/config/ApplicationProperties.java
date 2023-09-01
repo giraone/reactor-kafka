@@ -46,11 +46,11 @@ public class ApplicationProperties {
     /**
      * Mode: Produce, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
-    private String mode = MODE_PIPE + "Partitioned";
+    private String mode = MODE_PIPE;
     /**
      * GroupId: PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
-    private String groupId = MODE_PIPE + "Partitioned";
+    private String groupId = mode + "ReceiveSend";
     /**
      * First topic between producer and pipe.
      */
