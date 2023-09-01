@@ -103,11 +103,17 @@ public class ApplicationProperties {
     @NoArgsConstructor
     @ToString
     public static class ProducerProperties {
-        /** all = quorum (default), 1 = leader only, 0 = no ack */
+        /**
+         * all = quorum (default), 1 = leader only, 0 = no ack
+         */
         private String acks = "all";
-        /** for performance increase to 100000–200000 (default 16384) */
+        /**
+         * for performance increase to 100000–200000 (default 16384)
+         */
         private int batchSize = 16384;
-        /** **/
+        /**
+         *
+         **/
         private Duration deliveryTimeout = Duration.ofMinutes(5);
     }
 
@@ -139,16 +145,42 @@ public class ApplicationProperties {
          */
         private Duration commitRetryInterval = null;
         /**
-         * The maximum number of records returned in a single call to poll(). Default = 500.
+         * The maximum number of records returned in a single call to poll().
+         * Kafka default = 500.
          * Note, that <code>max.poll.records</code> does not impact the underlying fetching behavior.
-         * The consumer will cache the records from each fetch request and returns them incrementally from each poll.";
+         * The consumer will cache the records from each fetch request and returns them incrementally from each poll.
          */
-        private int maxPollRecords = 100;
+        private int maxPollRecords = 500; // Kafka default = 500
         /**
-         * The maximum delay between invocations of poll() when using consumer group management. Default = 30 seconds.
-         * This places an upper bound on the amount of time that the consumer can be idle before fetching more records.";
+         * The maximum delay between invocations of poll() in seconds when using consumer group management.
+         * Kafka default = 30 seconds.
+         * This places an upper bound on the amount of time that the consumer can be idle before fetching more records.
          */
-        private Duration maxPollInterval = Duration.ofSeconds(10);
+        private Duration maxPollInterval = Duration.ofSeconds(30);
+        /**
+         * The maximum amount of data the server should return for a fetch request.
+         * Kafka default = 50MByte.
+         * Records are fetched in batches by the consumer, and if the first record batch in the first non-empty partition
+         * of the fetch is larger than this value, the record batch will still be returned to ensure that the consumer
+         * can make progress. As such, this is not a absolute maximum.
+         * Note that the consumer performs multiple fetches in parallel.
+         */
+        private int fetchMaxBytes = 52428800; // Kafka default = 52428800
+        /**
+         * The maximum amount of data per-partition the server will return.
+         * Kafka default = 1MByte.
+         * Records are fetched in batches by the consumer.
+         * If the first record batch in the first non-empty partition of the fetch is larger than this limit, the batch
+         * will still be returned to ensure that the consumer can make progress.
+         * See fetch.max.bytes for limiting the consumer request size.
+         */
+        private int maxPartitionFetchBytes = 1048576; // Kafka default = 1048576
+        /**
+         * The maximum amount of time the server will block before answering the fetch request if there isn’t sufficient
+         * data to immediately satisfy the requirement given by fetch.min.bytes.
+         * Kafka default = 500ms.
+         */
+        private Duration fetchMaxWaitMs = Duration.ofMillis(500); // Kafka default = 500ms
         /**
          * Retries, when inbound flux (consumer) fails.
          * Since in reactive streams an error represents a terminal signal, any error signal emitted in the inbound

@@ -42,8 +42,13 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName());
         // Group ID depends on the "mode"
         props.put(ConsumerConfig.GROUP_ID_CONFIG, applicationProperties.getGroupId());
+        // Poll properties
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, applicationProperties.getConsumer().getMaxPollRecords());
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, (int) applicationProperties.getConsumer().getMaxPollInterval().toMillis());
+        // Fetch properties
+        props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, applicationProperties.getConsumer().getFetchMaxBytes());
+        props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, applicationProperties.getConsumer().getMaxPartitionFetchBytes());
+        props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, (int) applicationProperties.getConsumer().getFetchMaxWaitMs().toMillis());
 
         final ReceiverOptions<String, String> basicReceiverOptions = ReceiverOptions.create(props);
 
