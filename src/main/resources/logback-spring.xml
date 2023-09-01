@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <appender name="Console"
-            class="ch.qos.logback.core.ConsoleAppender">
-    <layout class="ch.qos.logback.classic.PatternLayout">
-      <Pattern>
-        %d{ISO8601} %-5level [%50t] %msg%n%throwable
-      </Pattern>
-    </layout>
-  </appender>
+  <springProfile name="default">
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+  </springProfile>
 
-  <root level="info">
-    <appender-ref ref="Console" />
-  </root>
+  <springProfile name="setup1">
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+    <springProperty scope="context" name="appName" source="spring.application.name"/>
 
+    <!-- See https://loki4j.github.io/loki-logback-appender/docs/configuration -->
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+      <http>
+        <!-- local loki -->
+        <url>http://${APPLICATION_LOKI_HOST}:${APPLICATION_LOKI_PORT}/loki/api/v1/push</url>
+      </http>
+      <format>
+        <label>
+          <pattern>app=${appName},host=${HOSTNAME},,traceID=%X{traceId:-NONE},level=%level</pattern>
+        </label>
+        <message>
+          <pattern>${FILE_LOG_PATTERN}</pattern>
+        </message>
+        <sortByTime>true</sortByTime>
+      </format>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="LOKI"/>
+    </root>
+
+  </springProfile>
 </configuration>
