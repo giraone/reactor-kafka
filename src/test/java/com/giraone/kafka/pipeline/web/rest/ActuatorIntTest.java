@@ -36,4 +36,18 @@ class ActuatorIntTest {
             .expectBody()
             .json("{\"status\":\"UP\"}");
     }
+
+    @DisplayName("Test GET /actuator/metrics")
+    @Test
+    public void metricsIsAvailable() {
+
+        // act / assert
+        webTestClient.get().uri("/actuator/metrics")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("names").isNotEmpty();
+    }
 }
