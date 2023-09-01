@@ -1,8 +1,14 @@
 # Reactive Spring Boot Kafka
 
-Example Spring WebFlux project using [reactive Kafka](https://projectreactor.io/docs/kafka/release/reference/).
+A Spring WebFlux project using [reactive Kafka](https://projectreactor.io/docs/kafka/release/reference/).
 
-There are the following application modes:
+Basically the topology is
+
+- there is a producer (mode = `produce`)
+- there is a processor (mode = `pipe`)
+- there is a consumer (mode = `consume`)
+
+The application code contains all modes (environment variable `APPLICATION_MODE`) in one application:
 
 - Producer (periodic source, Kafka sink)
 - Pipe (Kafka source, Kafka sink)
@@ -16,10 +22,31 @@ Solution Pipe 2 and Pipe 3 do not start, when there are older events in topic, b
 
 ## Setup
 
+### Build and Run
+
+```shell
+mvn -Ploki package
+dockerize.sh
+docker-compose up -d
+```
+
 ### Kafka
 
 - Broker: `kakfa-1:9092` via [docker-compose.yml](docker/docker-compose.yml)
-- Topics: `topic1,topic2`
+- Topics: `a-p1,b-p1`
+
+### Docker containers
+
+There are 8 containers
+
+- produce
+- pipe
+- consume
+- Kafka Zookeeper
+- Kafka Broker
+- Prometheus - metrics collector
+- Loki - log storage
+- Grafana - metrics visualization
 
 ## Testing
 
@@ -40,6 +67,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 ### Other TODOs
 
+- ShutdownHooks => dispose the subscription
 - receive vs. receiveAutoAck
 
 ## Performance

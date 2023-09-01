@@ -1,5 +1,7 @@
 package com.giraone.kafka.pipeline.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,8 +22,43 @@ public class CounterService {
     private final Map<String, Map<Integer, BeforeAndNowCounter>> counterPerMetric = new HashMap<>();
     private final Map<String, BeforeAndNowCounter> totalCounterPerMetric = new HashMap<>();
 
-    public void logRate(String metric, int partition, long offset) {
-        logRateInternal(metric, partition, offset);
+    private final Counter counterSend;
+    private final Counter counterReceive;
+    private final Counter counterAcknowledge;
+    private final Counter counterCommit;
+    private final Counter counterProduced;
+
+    public CounterService(MeterRegistry registry) {
+        this.counterSend = registry.counter("pipeline.send");
+        this.counterReceive = registry.counter("pipeline.receive");
+        this.counterAcknowledge = registry.counter("pipeline.acknowledge");
+        this.counterCommit = registry.counter("pipeline.commit");
+        this.counterProduced = registry.counter("pipeline.produced");
+    }
+
+    public void logRateSend(int partition, long offset) {
+        logRateInternal("SEND", partition, offset);
+        counterSend.increment();
+    }
+
+    public void logRateReceive(int partition, long offset) {
+        logRateInternal("RECV", partition, offset);
+        counterReceive.increment();
+    }
+
+    public void logRateAcknowledge(int partition, long offset) {
+        logRateInternal("ACKN", partition, offset);
+        counterAcknowledge.increment();
+    }
+
+    public void logRateCommit(int partition, long offset) {
+        logRateInternal("CMMT", partition, offset);
+        counterCommit.increment();
+    }
+
+    public void logRateProduced() {
+        logRateInternal("PROD", -1, -1);
+        counterProduced.increment();
     }
 
     public void logRate(String metric) {

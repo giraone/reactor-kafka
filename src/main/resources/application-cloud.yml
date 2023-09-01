@@ -12,5 +12,5 @@ spring:
         jaas.config: ${vcap.services.topic-perf-1.credentials.sasl-jaas-config}
 
 application:
-  topic-input: ${vcap.services.topic-perf-1.credentials.topic}
-  topic-output: ${vcap.services.topic-perf-2.credentials.topic}
+  topic-a: ${vcap.services.topic-perf-1.credentials.topic}
+  topic-b: ${vcap.services.topic-perf-2.credentials.topic}

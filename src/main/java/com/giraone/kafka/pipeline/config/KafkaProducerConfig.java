@@ -22,8 +22,10 @@ public class KafkaProducerConfig {
 
     public KafkaProducerConfig(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
-        if (!applicationProperties.getMode().equals(ApplicationProperties.MODE_CONSUME)) {
-            LOGGER.info("Output topic is: {}", applicationProperties.getTopicOutput());
+        if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_PRODUCE)) {
+            LOGGER.info("Output topic of service PRODUCE is: {}", applicationProperties.getTopicA());
+        } else if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_PIPE)) {
+            LOGGER.info("Output topic of service PIPE is: {}", applicationProperties.getTopicB());
         }
     }
 

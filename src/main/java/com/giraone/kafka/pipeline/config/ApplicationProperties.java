@@ -1,6 +1,7 @@
 package com.giraone.kafka.pipeline.config;
 
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -51,21 +52,24 @@ public class ApplicationProperties {
      */
     private String groupId = MODE_PIPE + "Partitioned";
     /**
-     * Input topic.
+     * First topic between producer and pipe.
      */
-    private String topicInput = DEFAULT_TOPIC_A;
+    private String topicA = DEFAULT_TOPIC_A;
     /**
-     * Output topic.
+     * Second topic between producer and pipe.
      */
-    private String topicOutput = DEFAULT_TOPIC_B;
+    private String topicB = DEFAULT_TOPIC_B;
     /**
-     * Interval for producer service. E.g. 1ms => 64 Events per second.
+     * Time interval for producer service after which a new event is emitted. With produceInterval=100ms, there should be
+     * approx. 10 events per second.
+     * Default is 100ms.
      */
-    private Duration produceInterval = Duration.ofMillis(1);
+    private Duration produceInterval = Duration.ofMillis(100);
     /**
-     * Working interval for pipe service. E.g. 10ms: Transform step wil wait 10ms. Can be null.
+     * Processing time for pipe service. The transform step will take (wait) this amount of time.
+     * Default is 10ms.
      */
-    private Duration transformInterval = null;
+    private Duration processingTime = Duration.ofMillis(10);
     /**
      * Kafka producer properties.
      */
@@ -75,6 +79,7 @@ public class ApplicationProperties {
      */
     private ConsumerProperties consumer = new ConsumerProperties();
 
+    private HostAndPort loki = new HostAndPort("localhost", 3100);
 
     @SuppressWarnings("java:S2629") // invoke conditionally
     @PostConstruct
@@ -129,7 +134,7 @@ public class ApplicationProperties {
         /**
          * Flag, whether auto-commit is used - default=false. If true commitInterval/commitBatchSize are used..
          **/
-        private boolean autoCommit = true;
+        private boolean autoCommit = false;
         /**
          * Configures commit interval for automatic commits.
          * At least one commit operation is attempted within this interval if records are consumed and acknowledged.
@@ -207,5 +212,16 @@ public class ApplicationProperties {
         public Retry toRetry() {
             return Retry.backoff(maxAttempts, backoff);
         }
+    }
+
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class HostAndPort {
+        private String host = "localhost";
+        private int port = 3100;
     }
 }

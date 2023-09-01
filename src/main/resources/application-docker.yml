@@ -2,3 +2,7 @@ spring:
   kafka:
     bootstrap-servers: 'kafka-1:9092'
 
+application:
+  loki:
+    host: loki
+    port: 3100

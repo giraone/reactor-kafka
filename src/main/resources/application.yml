@@ -31,11 +31,14 @@ spring:
     enabled: true
 
 application:
-  topic-input: 'a-p1'
-  topic-output: 'b-p1'
+  topic-a: 'a-p1'
+  topic-b: 'b-p1'
   consumer:
     max-poll-records: 500  # Default 500.
     max-poll-interval: '30s' # Default 30s.
     fetch-max-bytes: 52428800 # Default 52428800.
     max-partition-fetch-bytes: 1048576 # Default 1048576.
     fetch-max-wait-ms: '500ms' # Default 500ms.
+  loki:
+    host: localhost
+    port: 3100

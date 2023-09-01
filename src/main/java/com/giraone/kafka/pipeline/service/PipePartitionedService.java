@@ -33,13 +33,13 @@ public class PipePartitionedService extends AbstractPipeService {
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
             .flatMap(partitionFlux ->
                 partitionFlux.publishOn(scheduler)
-                    .doOnNext(receiverRecord -> counterService.logRate("RECV", receiverRecord.partition(), receiverRecord.offset()))
-                    .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(transformToSenderRecord(receiverRecord, topicOutput)),
-                        1, 1)
+                    .doOnNext(receiverRecord -> counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset()))
+                    .flatMap(this::process, 1, 1)
                     .sample(applicationProperties.getConsumer().getCommitInterval()) // Commit periodically
                     .concatMap(senderResult -> senderResult.correlationMetadata().commit()
-                        .doOnNext(unused -> counterService.logRate("COMT",
-                            senderResult.correlationMetadata().topicPartition().partition(), senderResult.correlationMetadata().offset())))
+                        .doOnNext(unused -> counterService.logRateCommit(
+                            senderResult.correlationMetadata().topicPartition().partition(),
+                            senderResult.correlationMetadata().offset())))
             )
             .subscribe();
     }

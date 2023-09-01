@@ -106,8 +106,6 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - APPLICATION_PRODUCE_INTERVAL=100ms
       - APPLICATION_TOPIC_A=a-p1
-      - APPLICATION_LOKI_HOST=loki
-      - APPLICATION_LOKI_PORT=3100
 
   pipe:
     image: reactor-kafka
@@ -126,8 +124,6 @@ services:
       - APPLICATION_PROCESSING_TIME=10ms
       - APPLICATION_TOPIC_A=a-p1
       - APPLICATION_TOPIC_B=b-p1
-      - APPLICATION_LOKI_HOST=loki
-      - APPLICATION_LOKI_PORT=3100
 
   consume:
     image: reactor-kafka
@@ -144,8 +140,6 @@ services:
       - SPRING_APPLICATION_NAME=consume # the name is shown in the log
       - SPRING_PROFILES_ACTIVE=docker
       - APPLICATION_TOPIC_B=b-p1
-      - APPLICATION_LOKI_HOST=loki
-      - APPLICATION_LOKI_PORT=3100
 
 networks:
   kafka:

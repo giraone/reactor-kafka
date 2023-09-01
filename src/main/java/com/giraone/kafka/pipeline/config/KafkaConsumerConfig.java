@@ -26,11 +26,18 @@ public class KafkaConsumerConfig {
 
     public KafkaConsumerConfig(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
-        this.topicInput = applicationProperties.getTopicInput();
         LOGGER.info("Mode is: {}", applicationProperties.getMode());
-        if (!applicationProperties.getMode().equals(ApplicationProperties.MODE_PRODUCE)) {
-            LOGGER.info("GroupId is: {}", applicationProperties.getGroupId());
-            LOGGER.info("Input topic is: {}", topicInput);
+        if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_PIPE)) {
+            LOGGER.info("GroupId of service PIPE is: {}", applicationProperties.getGroupId());
+            topicInput = applicationProperties.getTopicA();
+            LOGGER.info("Input topic of service PIPE is: {}", topicInput);
+        } else if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_CONSUME))  {
+            LOGGER.info("GroupId of service CONSUME is: {}", applicationProperties.getGroupId());
+            topicInput = applicationProperties.getTopicB();
+            LOGGER.info("Input topic of service CONSUME is: {}", topicInput);
+        } else {
+            LOGGER.info("Service PRODUCE has no input topic");
+            topicInput = null;
         }
     }
 
@@ -74,7 +81,7 @@ public class KafkaConsumerConfig {
             basicReceiverOptions.consumerProperty(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         }
 
-        final List<String> inputTopics = List.of(topicInput);
+        final List<String> inputTopics = topicInput != null ? List.of(topicInput) : List.of();
         final ReceiverOptions<String, String> ret = basicReceiverOptions
             .subscription(inputTopics)
             .consumerListener(new MicrometerConsumerListener(meterRegistry)) // we want standard Kafka metrics

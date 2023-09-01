@@ -18,12 +18,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: ['health', 'loggers']
+        include: ['health', 'loggers', 'metrics', 'prometheus']
 
 spring:
   application:
-    name: pipe-test
+    name: 'pipe-test'
+    mode: 'Pipe'
 
 application:
-  topic-input: 'a-p1'
-  topic-output: 'b-p1'
+  topic-a: 'a-p1'
+  topic-b: 'b-p1'
