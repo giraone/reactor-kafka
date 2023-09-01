@@ -1,0 +1,35 @@
+# global config
+global:
+  scrape_interval:     30s # Default is every 1 minute.
+  evaluation_interval: 30s # Default is every 1 minute.
+  scrape_timeout:      20s # Default is 10s.
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+# - "first_rules.yml"
+# - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# The job name is added as a label `job=<job_name>` to any time series scraped from this config.
+scrape_configs:
+  # Here it's Prometheus itself.
+#  - job_name: 'prometheus'
+#    # metrics_path defaults to '/metrics'
+#    scrape_interval: 60s
+#    static_configs:
+#      - targets: ['127.0.0.1:9090']
+
+  - job_name: 'job-actuator-produce'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['producer:8080']
+
+  - job_name: 'job-actuator-pipe'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['pipe:8080']
+
+  - job_name: 'job-actuator-consume'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['consume:8080']

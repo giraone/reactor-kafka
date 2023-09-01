@@ -30,4 +30,4 @@ file_env() {
 
 file_env 'SPRING_KAFKA_BOOTSTRAP_SERVERS'
 
-exec java ${JAVA_OPTS} -XX:+AlwaysPreTouch -Djava.security.egd=file:/dev/urandom -cp /app/resources/:/app/classes/:/app/libs/* "com.giraone.kafka.materialize.EventToDatabaseApplication" "$@"
+exec java ${JAVA_OPTS} -XX:+AlwaysPreTouch -Djava.security.egd=file:/dev/urandom -cp /app/resources/:/app/classes/:/app/libs/* "com.giraone.kafka.pipeline.KafkaPipelineApplication" "$@"
