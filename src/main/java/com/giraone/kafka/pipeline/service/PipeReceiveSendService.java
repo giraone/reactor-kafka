@@ -26,6 +26,7 @@ public class PipeReceiveSendService extends PipeService {
 
         reactiveKafkaConsumerTemplate.receive()
             .doOnNext(receiverRecord -> counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset()))
+            .publishOn(scheduler)
             .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(process(receiverRecord)), applicationProperties.getConsumer().getThreads(), 1)
             .doOnNext(this::ack)
             .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))

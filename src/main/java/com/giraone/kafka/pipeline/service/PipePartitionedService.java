@@ -4,13 +4,9 @@ import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 @Service
 public class PipePartitionedService extends PipeService {
-
-    private final Scheduler scheduler;
 
     public PipePartitionedService(
         ApplicationProperties applicationProperties,
@@ -20,7 +16,6 @@ public class PipePartitionedService extends PipeService {
 
     ) {
         super(applicationProperties, counterService, reactiveKafkaProducerTemplate, reactiveKafkaConsumerTemplate);
-        this.scheduler = Schedulers.newParallel("worker", applicationProperties.getConsumer().getThreads());
     }
 
     //------------------------------------------------------------------------------------------------------------------
