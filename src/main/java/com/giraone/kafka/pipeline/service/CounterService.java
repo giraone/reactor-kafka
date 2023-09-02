@@ -29,7 +29,8 @@ public class CounterService {
     private final Counter counterProduced;
     private final Counter counterProcessed;
     private final Counter counterError;
-    private final Counter counterPipelineStopped;
+    private final Counter counterMainLoopStarted;
+    private final Counter counterMainLoopStopped;
 
     public CounterService(MeterRegistry registry) {
         this.counterSend = registry.counter("pipeline.send");
@@ -39,7 +40,8 @@ public class CounterService {
         this.counterProduced = registry.counter("pipeline.produced");
         this.counterProcessed = registry.counter("pipeline.processed");
         this.counterError = registry.counter("pipeline.error");
-        this.counterPipelineStopped = registry.counter("pipeline.stopped");
+        this.counterMainLoopStarted = registry.counter("pipeline.mainloop.started");
+        this.counterMainLoopStopped = registry.counter("pipeline.mainloop.stopped");
     }
 
     public void logRateSend(int partition, long offset) {
@@ -77,9 +79,14 @@ public class CounterService {
         counterError.increment();
     }
 
+    public void logMainLoopStarted() {
+        LOGGER.info("Main loop started!");
+        counterMainLoopStarted.increment();
+    }
+
     public void logMainLoopError(Throwable throwable) {
         LOGGER.error("Main loop error! ", throwable);
-        counterPipelineStopped.increment();
+        counterMainLoopStopped.increment();
     }
 
     private void logRateInternal(String metric, int partition, long offset) {

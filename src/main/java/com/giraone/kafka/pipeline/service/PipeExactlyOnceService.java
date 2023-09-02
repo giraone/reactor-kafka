@@ -36,5 +36,6 @@ public class PipeExactlyOnceService extends PipeService {
                 return transactionManager.abort().then(Mono.error(e));
             })
             .subscribe(null, counterService::logMainLoopError);
+        counterService.logMainLoopStarted();
     }
 }

@@ -35,6 +35,7 @@ public class ProduceTransactionalService extends AbstractProduceService {
             .doOnNext(senderResult -> counterService.logRateSend(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> LOGGER.error("Send failed", e))
             .subscribe();
+        counterService.logMainLoopStarted();
     }
 
     protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {

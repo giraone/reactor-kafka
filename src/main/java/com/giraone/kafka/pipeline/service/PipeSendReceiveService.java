@@ -34,6 +34,7 @@ public class PipeSendReceiveService extends PipeService {
             .doOnNext(this::ack)
             .doOnError(e -> counterService.logError("PipeSendReceiveService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
+        counterService.logMainLoopStarted();
     }
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {

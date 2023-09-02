@@ -44,5 +44,6 @@ public class PipePartitionedService extends PipeService {
             )
             .doOnError(e -> counterService.logError("PipePartitionedService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
+        counterService.logMainLoopStarted();
     }
 }
