@@ -27,7 +27,8 @@ public class ConsumeService extends AbstractService {
         reactiveKafkaConsumerTemplate.receive()
             .doOnNext(this::consume)
             .doOnNext(this::ack)
-            .subscribe();
+            .doOnError(e -> counterService.logError("ConsumeService failed!", e))
+            .subscribe(null, counterService::logMainLoopError);
     }
 
     protected void consume(ReceiverRecord<String, String> receiverRecord) {

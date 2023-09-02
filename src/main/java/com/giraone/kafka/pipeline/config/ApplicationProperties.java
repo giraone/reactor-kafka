@@ -48,10 +48,6 @@ public class ApplicationProperties {
      */
     private String mode = MODE_PIPE;
     /**
-     * GroupId: PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
-     */
-    private String groupId = mode;
-    /**
      * First topic between producer and pipe.
      */
     private String topicA = DEFAULT_TOPIC_A;
@@ -77,7 +73,7 @@ public class ApplicationProperties {
     /**
      * Kafka consumer properties.
      */
-    private ConsumerProperties consumer = new ConsumerProperties();
+    private ConsumerProperties consumer = new ConsumerProperties(mode);
 
     private HostAndPort loki = new HostAndPort("localhost", 3100);
 
@@ -127,6 +123,14 @@ public class ApplicationProperties {
     @NoArgsConstructor
     @ToString
     public static class ConsumerProperties {
+        public ConsumerProperties(String groupId) {
+            this.groupId = groupId;
+        }
+
+        /**
+         * GroupId: pipe, consume, pipe-docker, consume-docker
+         */
+        private String groupId = "pipe-default";
         /**
          * Number of consumer threads, when PipePartitionedService is used
          */

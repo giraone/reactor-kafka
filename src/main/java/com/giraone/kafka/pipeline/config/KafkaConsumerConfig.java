@@ -28,11 +28,11 @@ public class KafkaConsumerConfig {
         this.applicationProperties = applicationProperties;
         LOGGER.info("Mode = {}", applicationProperties.getMode());
         if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_PIPE)) {
-            LOGGER.info("GroupId of service PIPE is = {}.", applicationProperties.getGroupId());
+            LOGGER.info("GroupId of service PIPE is = {}.", applicationProperties.getConsumer().getGroupId());
             topicInput = applicationProperties.getTopicA();
             LOGGER.info("Input topic of service PIPE = {}.", topicInput);
         } else if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_CONSUME)) {
-            LOGGER.info("GroupId of service CONSUME = {}.", applicationProperties.getGroupId());
+            LOGGER.info("GroupId of service CONSUME = {}.", applicationProperties.getConsumer().getGroupId());
             topicInput = applicationProperties.getTopicB();
             LOGGER.info("Input topic of service CONSUME = {}.", topicInput);
         } else {
@@ -48,7 +48,7 @@ public class KafkaConsumerConfig {
         // Always use the new StickyAssignor, to keep the assignments as balanced as possible
         props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CooperativeStickyAssignor.class.getName());
         // Group ID depends on the "mode"
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, applicationProperties.getGroupId());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, applicationProperties.getConsumer().getGroupId());
         // Poll properties
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, applicationProperties.getConsumer().getMaxPollRecords());
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, (int) applicationProperties.getConsumer().getMaxPollInterval().toMillis());

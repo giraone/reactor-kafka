@@ -45,6 +45,9 @@ cd ..
 
 - Broker: `kakfa-1:9092` via [docker-compose.yml](docker/docker-compose.yml)
 - Topics: `a1,b1`
+- Group-Ids:
+  - `pipe-default` and `consume-default` for running locally
+  - `pipe-docker` and `consume-docker` for running within docker
 
 ### Docker containers
 

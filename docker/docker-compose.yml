@@ -123,6 +123,7 @@ services:
       - SPRING_APPLICATION_NAME=pipe # the name is shown in the log and used in metrics
       - SPRING_PROFILES_ACTIVE=docker
       - APPLICATION_MODE=PipeReceiveSend
+      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
       - APPLICATION_PROCESSING_TIME=10ms
       - APPLICATION_TOPIC_A=a1
       - APPLICATION_TOPIC_B=b1
@@ -142,6 +143,7 @@ services:
       - SPRING_APPLICATION_NAME=consume # the name is shown in the log and used in metrics
       - SPRING_PROFILES_ACTIVE=docker
       - APPLICATION_MODE=Consume
+      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
       - APPLICATION_TOPIC_B=b1
 
 networks:

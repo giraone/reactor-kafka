@@ -29,7 +29,7 @@ public class PipeReceiveSendService extends PipeService {
             .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(process(receiverRecord)), 1, 1)
             .doOnNext(this::ack)
             .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
-            .subscribe(null, counterService::logPipelineStoppedOnError);
+            .subscribe(null, counterService::logMainLoopError);
     }
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {

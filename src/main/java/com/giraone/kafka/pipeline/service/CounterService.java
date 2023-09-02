@@ -77,8 +77,8 @@ public class CounterService {
         counterError.increment();
     }
 
-    public void logPipelineStoppedOnError(Throwable throwable) {
-        LOGGER.error("Pipeline stopped! ", throwable);
+    public void logMainLoopError(Throwable throwable) {
+        LOGGER.error("Main loop error! ", throwable);
         counterPipelineStopped.increment();
     }
 

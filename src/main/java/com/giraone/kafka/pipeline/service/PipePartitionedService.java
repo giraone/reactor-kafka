@@ -43,6 +43,6 @@ public class PipePartitionedService extends PipeService {
                             senderResult.correlationMetadata().offset())))
             )
             .doOnError(e -> counterService.logError("PipePartitionedService failed!", e))
-            .subscribe(null, counterService::logPipelineStoppedOnError);
+            .subscribe(null, counterService::logMainLoopError);
     }
 }
