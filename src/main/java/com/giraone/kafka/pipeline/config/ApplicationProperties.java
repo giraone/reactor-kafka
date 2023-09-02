@@ -44,13 +44,13 @@ public class ApplicationProperties {
      */
     private boolean debugAgent;
     /**
-     * Mode: Produce, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
+     * Mode: ProduceStandard, ProduceFlatMap, ProduceTransactional, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
     private String mode = MODE_PIPE;
     /**
      * GroupId: PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
-    private String groupId = mode + "ReceiveSend";
+    private String groupId = mode;
     /**
      * First topic between producer and pipe.
      */

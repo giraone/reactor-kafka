@@ -16,7 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // because init() needs ConsumerService
-@TestPropertySource(locations = "classpath:application-test-consume.properties") // must be properties - not yaml
+@TestPropertySource(locations = "classpath:test-consume.properties") // must be properties - not yaml
 class ConsumeServiceIntTest extends AbstractKafkaIntTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsumeServiceIntTest.class);

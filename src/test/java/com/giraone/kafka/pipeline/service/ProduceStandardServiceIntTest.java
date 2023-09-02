@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // because init() needs ConsumerService
-@TestPropertySource(locations = "classpath:application-test-produce.properties") // must be properties - not yaml
+@TestPropertySource(locations = "classpath:test-produce-standard.properties") // must be properties - not yaml
 class ProduceStandardServiceIntTest extends AbstractKafkaIntTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProduceStandardServiceIntTest.class);
