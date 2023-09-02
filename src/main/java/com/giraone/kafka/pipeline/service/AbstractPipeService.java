@@ -54,7 +54,7 @@ public abstract class AbstractPipeService extends AbstractService {
     /**
      * The pipeline task, that may take some time (defined by APPLICATION_PROCESSING_TIME) for processing an input.
      */
-    protected Mono<SenderRecord<String, String, ReceiverOffset>> process(ReceiverRecord<String,String> inputRecord) {
+    protected Mono<SenderRecord<String, String, ReceiverOffset>> process(ReceiverRecord<String, String> inputRecord) {
         return Mono.delay(applicationProperties.getProcessingTime())
             .map(ignored -> coreProcess(inputRecord.value()))
             // pass receiverOffset as correlation metadata to commit on send
@@ -65,7 +65,7 @@ public abstract class AbstractPipeService extends AbstractService {
      * The pipeline task, that may take some time (defined by APPLICATION_PROCESSING_TIME) for processing an input.
      * This version is for ConsumerRecord instead of ReceiverRecord
      */
-    protected Mono<SenderRecord<String, String, ReceiverOffset>> process(ConsumerRecord<String,String> inputRecord) {
+    protected Mono<SenderRecord<String, String, ReceiverOffset>> process(ConsumerRecord<String, String> inputRecord) {
         return Mono.delay(applicationProperties.getProcessingTime())
             .map(ignored -> coreProcess(inputRecord.value()))
             // pass receiverOffset as correlation metadata to commit on send

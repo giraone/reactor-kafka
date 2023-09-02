@@ -26,17 +26,17 @@ public class KafkaConsumerConfig {
 
     public KafkaConsumerConfig(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
-        LOGGER.info("Mode is: {}", applicationProperties.getMode());
+        LOGGER.info("Mode = {}", applicationProperties.getMode());
         if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_PIPE)) {
-            LOGGER.info("GroupId of service PIPE is: {}", applicationProperties.getGroupId());
+            LOGGER.info("GroupId of service PIPE is = {}.", applicationProperties.getGroupId());
             topicInput = applicationProperties.getTopicA();
-            LOGGER.info("Input topic of service PIPE is: {}", topicInput);
-        } else if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_CONSUME))  {
-            LOGGER.info("GroupId of service CONSUME is: {}", applicationProperties.getGroupId());
+            LOGGER.info("Input topic of service PIPE = {}.", topicInput);
+        } else if (applicationProperties.getMode().startsWith(ApplicationProperties.MODE_CONSUME)) {
+            LOGGER.info("GroupId of service CONSUME = {}.", applicationProperties.getGroupId());
             topicInput = applicationProperties.getTopicB();
-            LOGGER.info("Input topic of service CONSUME is: {}", topicInput);
+            LOGGER.info("Input topic of service CONSUME = {}.", topicInput);
         } else {
-            LOGGER.info("Service PRODUCE has no input topic");
+            LOGGER.info("Service PRODUCE has no input topic.");
             topicInput = null;
         }
     }

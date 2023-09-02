@@ -53,12 +53,12 @@ public class KafkaProducerConfig {
             ;
 
         // https://stackoverflow.com/a/69904417 : ...a single producer instance across threads will generally be faster...
-//        if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
-//            final int threads = Runtime.getRuntime().availableProcessors() - 1;
-//            final Scheduler scheduler = Schedulers.newParallel("parallel",threads);
-//            ret.scheduler(scheduler); // the producer should be as fast (parallel) as possible
-//            LOGGER.info("Producer running with {} parallel threads", threads);
-//        }
+        //        if (ApplicationProperties.MODE_PRODUCE.equals(applicationProperties.getMode())) {
+        //            final int threads = Runtime.getRuntime().availableProcessors() - 1;
+        //            final Scheduler scheduler = Schedulers.newParallel("parallel",threads);
+        //            ret.scheduler(scheduler); // the producer should be as fast (parallel) as possible
+        //            LOGGER.info("Producer running with {} parallel threads", threads);
+        //        }
         LOGGER.info("SenderOptions defined by bean of {} with scheduler={}, stopOnError={}, maxInFlight={}, closeTimeout={}"
                 + ", {}={}, {}={}, {}={}, {}={}, {}={}, {}={}",
             this.getClass().getSimpleName(), ret.scheduler(), ret.stopOnError(), ret.maxInFlight(), ret.closeTimeout(),

@@ -29,6 +29,11 @@ class PipeServiceIntTest extends AbstractKafkaIntTest {
 
     private Consumer<String, String> consumer;
 
+    @Override
+    protected String getClientId() {
+        return "PipeServiceIntTest";
+    }
+
     @BeforeEach
     protected void setUp() {
         LOGGER.debug("PipeServiceIntTest.setUp");
@@ -40,14 +45,14 @@ class PipeServiceIntTest extends AbstractKafkaIntTest {
         this.waitForTopic(applicationProperties.getTopicB(), true);
 
         consumer = createConsumer(applicationProperties.getTopicB());
-        LOGGER.info("Consumer for \"{}\" created.", applicationProperties.getTopicB());
+        LOGGER.info("Consumer for \"{}\" created. Assignments = {}", applicationProperties.getTopicB(), consumer.assignment());
     }
 
     @AfterEach
     public void tearDown() {
         if (consumer != null) {
             consumer.close();
-            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopicA());
+            LOGGER.info("Consumer for \"{}\" closed.", applicationProperties.getTopicB());
         }
     }
 

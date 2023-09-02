@@ -72,11 +72,13 @@ public abstract class AbstractKafkaIntTest {
     protected final List<List<String>> receivedMessages = new ArrayList<>(partitions);
     protected final List<List<ConsumerRecord<String, String>>> receivedRecords = new ArrayList<>(partitions);
 
+    protected abstract String getClientId();
+
     @BeforeEach
     public final void setUpAbstractKafkaTest() {
         waitForContainerStart();
-        senderOptions = SenderOptions.create(producerProps());
-        receiverOptions = createReceiverOptions(this.getClass().getSimpleName());
+        senderOptions = SenderOptions.create(producerProps(getClientId()));
+        receiverOptions = createReceiverOptions(this.getClass().getSimpleName(), getClientId());
     }
 
     @DynamicPropertySource
@@ -87,9 +89,10 @@ public abstract class AbstractKafkaIntTest {
         });
     }
 
-    protected Map<String, Object> producerProps() {
+    protected Map<String, Object> producerProps(String clientId) {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers());
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(requestTimeoutMillis));
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -97,10 +100,11 @@ public abstract class AbstractKafkaIntTest {
         return props;
     }
 
-    protected Map<String, Object> consumerProps(String groupId) {
+    protected Map<String, Object> consumerProps(String groupId, String clientId) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, String.valueOf(sessionTimeoutMillis));
         props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, String.valueOf(heartbeatIntervalMillis));
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -109,8 +113,8 @@ public abstract class AbstractKafkaIntTest {
         return props;
     }
 
-    protected ReceiverOptions<String, String> createReceiverOptions(String groupId) {
-        Map<String, Object> props = consumerProps(groupId);
+    protected ReceiverOptions<String, String> createReceiverOptions(String groupId, String clientId) {
+        Map<String, Object> props = consumerProps(groupId, clientId);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "2");
         receiverOptions = ReceiverOptions.create(props);
@@ -121,7 +125,7 @@ public abstract class AbstractKafkaIntTest {
     }
 
     protected Consumer<String, String> createConsumer(String topic, String groupId) {
-        Map<String, Object> consumerProps = consumerProps(groupId);
+        Map<String, Object> consumerProps = consumerProps(groupId, getClientId());
         Consumer<String, String> consumer = ConsumerFactory.INSTANCE.createConsumer(ReceiverOptions.create(consumerProps));
         consumer.subscribe(Collections.singletonList(topic));
         consumer.poll(Duration.ofMillis(requestTimeoutMillis));

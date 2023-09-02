@@ -24,6 +24,12 @@ class ConsumeServiceIntTest extends AbstractKafkaIntTest {
     @Autowired
     ApplicationProperties applicationProperties;
 
+
+    @Override
+    protected String getClientId() {
+        return "ConsumeServiceIntTest";
+    }
+
     @BeforeEach
     protected void setUp() {
         LOGGER.debug("ConsumeServiceIntTest.setUp");

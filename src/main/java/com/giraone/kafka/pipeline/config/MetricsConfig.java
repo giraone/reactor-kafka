@@ -18,8 +18,8 @@ public class MetricsConfig {
         @Value("${spring.application.name}") String applicationName,
         @Value("${application.mode}") String mode
     ) {
-        LOGGER.info("Name is: {}. Registered as \"application\".", applicationName);
-        LOGGER.info("Mode is: {}. Registered as \"mode\".", mode);
+        LOGGER.info("Name = {}. Registered as \"application\".", applicationName);
+        LOGGER.info("Mode = {}. Registered as \"mode\".", mode);
         return registry -> registry.config()
             .commonTags("application", applicationName)
             .commonTags("mode", mode);
