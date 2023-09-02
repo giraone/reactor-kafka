@@ -8,15 +8,15 @@ import reactor.core.publisher.Mono;
 import reactor.kafka.sender.TransactionManager;
 
 @Service
-public class PipeExactlyOnceService extends AbstractPipeService {
+public class PipeExactlyOnceService extends PipeService {
 
     public PipeExactlyOnceService(
         ApplicationProperties applicationProperties,
-        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
+        CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        CounterService counterService
+        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate
     ) {
-        super(applicationProperties, reactiveKafkaConsumerTemplate, reactiveKafkaProducerTemplate, counterService);
+        super(applicationProperties, counterService, reactiveKafkaProducerTemplate, reactiveKafkaConsumerTemplate);
     }
 
     //------------------------------------------------------------------------------------------------------------------

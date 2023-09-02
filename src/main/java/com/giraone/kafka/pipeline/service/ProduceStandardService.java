@@ -5,8 +5,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.kafka.sender.SenderRecord;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -15,20 +13,14 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
-public class ProduceService extends AbstractService {
+public class ProduceStandardService extends AbstractProduceService {
 
-    // One single thread is enough to generate numbers and System.currentTimeMillis() tupels
-    private static final Scheduler schedulerForProduce = Schedulers.newParallel("generate", 1, true);
-
-    private final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
-
-    public ProduceService(
+    public ProduceStandardService(
         ApplicationProperties applicationProperties,
-        ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        CounterService counterService
+        CounterService counterService,
+        ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate
     ) {
-        super(applicationProperties, counterService);
-        this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
+        super(applicationProperties, counterService, reactiveKafkaProducerTemplate);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -36,7 +28,8 @@ public class ProduceService extends AbstractService {
     @Override
     public void start() {
 
-        reactiveKafkaProducerTemplate.send(source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
+        LOGGER.info("STARTING to produce {} events.", maxNumberOfEvents);
+        reactiveKafkaProducerTemplate.send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
                 .map(tuple -> {
                     final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
                     return SenderRecord.create(producerRecord, tuple.getT1());

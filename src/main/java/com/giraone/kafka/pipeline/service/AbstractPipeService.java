@@ -28,18 +28,23 @@ public abstract class AbstractPipeService extends AbstractService {
     protected final Retry retry;
 
     public AbstractPipeService(ApplicationProperties applicationProperties,
-                               ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
+                               CounterService counterService,
                                ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-                               CounterService counterService) {
+                               ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate
+    ) {
         super(applicationProperties, counterService);
-        this.reactiveKafkaConsumerTemplate = reactiveKafkaConsumerTemplate;
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
+        this.reactiveKafkaConsumerTemplate = reactiveKafkaConsumerTemplate;
 
         this.delay = applicationProperties.getProcessingTime();
         this.retry = applicationProperties.getConsumer().getRetrySpecification().toRetry();
     }
 
     protected abstract void start();
+
+    protected abstract String getTopicInput();
+
+    protected abstract String getTopicOutput();
 
     @Override
     public void run(String... args) {
@@ -58,7 +63,7 @@ public abstract class AbstractPipeService extends AbstractService {
         return Mono.delay(applicationProperties.getProcessingTime())
             .map(ignored -> coreProcess(inputRecord.value()))
             // pass receiverOffset as correlation metadata to commit on send
-            .map(outputValue -> SenderRecord.create(new ProducerRecord<>(topicOutput, inputRecord.key(), outputValue), inputRecord.receiverOffset()));
+            .map(outputValue -> SenderRecord.create(new ProducerRecord<>(getTopicOutput(), inputRecord.key(), outputValue), inputRecord.receiverOffset()));
     }
 
     /**
@@ -69,7 +74,7 @@ public abstract class AbstractPipeService extends AbstractService {
         return Mono.delay(applicationProperties.getProcessingTime())
             .map(ignored -> coreProcess(inputRecord.value()))
             // pass receiverOffset as correlation metadata to commit on send
-            .map(outputValue -> SenderRecord.create(new ProducerRecord<>(topicOutput, inputRecord.key(), outputValue), null /* no correlation meta data */));
+            .map(outputValue -> SenderRecord.create(new ProducerRecord<>(getTopicOutput(), inputRecord.key(), outputValue), null /* no correlation meta data */));
     }
 
     /**

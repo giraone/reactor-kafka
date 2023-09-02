@@ -113,13 +113,13 @@ public class ApplicationProperties {
          */
         private String acks = "all";
         /**
-         * for performance increase to 100000–200000 (default 16384)
+         * For more performance increase to 100000–200000. Default = 16384.
          */
         private int batchSize = 16384;
         /**
-         *
+         * Maximum number of events, that are produced. Default = 1_000_000.
          **/
-        private Duration deliveryTimeout = Duration.ofMinutes(5);
+        private int maxNumberOfEvents = 1_000_000;
     }
 
     @Setter

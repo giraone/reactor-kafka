@@ -33,8 +33,10 @@ spring:
 application:
   topic-a: 'a1'
   topic-b: 'b1'
+  producer:
+    max-number-of-events: 1000000 # Default 1000000.
   consumer:
-    max-poll-records: 500  # Default 500.
+    max-poll-records: 500 # Default 500.
     max-poll-interval: '30s' # Default 30s.
     fetch-max-bytes: 52428800 # Default 52428800.
     max-partition-fetch-bytes: 1048576 # Default 1048576.

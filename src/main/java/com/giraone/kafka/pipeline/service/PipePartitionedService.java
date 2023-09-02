@@ -8,17 +8,18 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 @Service
-public class PipePartitionedService extends AbstractPipeService {
+public class PipePartitionedService extends PipeService {
 
     private final Scheduler scheduler;
 
     public PipePartitionedService(
         ApplicationProperties applicationProperties,
-        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
+        CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        CounterService counterService
+        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate
+
     ) {
-        super(applicationProperties, reactiveKafkaConsumerTemplate, reactiveKafkaProducerTemplate, counterService);
+        super(applicationProperties, counterService, reactiveKafkaProducerTemplate, reactiveKafkaConsumerTemplate);
         this.scheduler = Schedulers.newParallel("worker", applicationProperties.getConsumer().getThreads());
     }
 

@@ -5,8 +5,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.kafka.sender.SenderRecord;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -14,20 +12,14 @@ import reactor.util.function.Tuples;
 import java.time.Duration;
 
 @Service
-public class ProduceFlatMapService extends AbstractService {
-
-    // One single thread is enough to generate numbers and System.currentTimeMillis() tupels
-    private static final Scheduler schedulerForProduce = Schedulers.newParallel("generate", 1, true);
-
-    private final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
+public class ProduceFlatMapService extends AbstractProduceService {
 
     public ProduceFlatMapService(
         ApplicationProperties applicationProperties,
-        ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        CounterService counterService
+        CounterService counterService,
+        ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate
     ) {
-        super(applicationProperties, counterService);
-        this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
+        super(applicationProperties, counterService, reactiveKafkaProducerTemplate);
     }
 
     //------------------------------------------------------------------------------------------------------------------

@@ -21,17 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // because init() needs ConsumerService
-@TestPropertySource(locations = "classpath:application-test-pipe.properties") // must be properties - not yaml
-class ProduceServiceIntTest extends AbstractKafkaIntTest {
+@TestPropertySource(locations = "classpath:application-test-produce.properties") // must be properties - not yaml
+class ProduceStandardServiceIntTest extends AbstractKafkaIntTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProduceServiceIntTest.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProduceStandardServiceIntTest.class);
 
     @Autowired
     ApplicationProperties applicationProperties;
 
     @Autowired
-    private ProduceService produceService;
+    private ProduceStandardService produceStandardService;
 
     private Consumer<String, String> consumer;
 
@@ -62,7 +61,7 @@ class ProduceServiceIntTest extends AbstractKafkaIntTest {
 
     @Test
     void source() throws InterruptedException {
-        StepVerifier.create(produceService.source(Duration.ofSeconds(1), 2))
+        StepVerifier.create(produceStandardService.source(Duration.ofSeconds(1), 2))
             .expectNextCount(2)
             .verifyComplete();
 

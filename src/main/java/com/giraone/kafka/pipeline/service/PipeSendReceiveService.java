@@ -8,15 +8,15 @@ import reactor.kafka.receiver.ReceiverOffset;
 import reactor.kafka.sender.SenderResult;
 
 @Service
-public class PipeSendReceiveService extends AbstractPipeService {
+public class PipeSendReceiveService extends PipeService {
 
     public PipeSendReceiveService(
         ApplicationProperties applicationProperties,
-        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
+        CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        CounterService counterService
+        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate
     ) {
-        super(applicationProperties, reactiveKafkaConsumerTemplate, reactiveKafkaProducerTemplate, counterService);
+        super(applicationProperties, counterService, reactiveKafkaProducerTemplate, reactiveKafkaConsumerTemplate);
     }
 
     //------------------------------------------------------------------------------------------------------------------
