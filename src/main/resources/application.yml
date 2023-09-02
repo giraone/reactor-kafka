@@ -31,8 +31,8 @@ spring:
     enabled: true
 
 application:
-  topic-a: 'a-p1'
-  topic-b: 'b-p1'
+  topic-a: 'a1'
+  topic-b: 'b1'
   consumer:
     max-poll-records: 500  # Default 500.
     max-poll-interval: '30s' # Default 30s.

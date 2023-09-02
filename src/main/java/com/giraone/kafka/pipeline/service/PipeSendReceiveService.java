@@ -32,7 +32,8 @@ public class PipeSendReceiveService extends AbstractPipeService {
                     .flatMap(this::process)
             )
             .doOnNext(this::ack)
-            .subscribe();
+            .doOnError(e -> counterService.logError("PipeSendReceiveService failed!", e))
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {

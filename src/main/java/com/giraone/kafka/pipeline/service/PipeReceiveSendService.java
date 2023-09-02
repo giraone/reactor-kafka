@@ -28,7 +28,8 @@ public class PipeReceiveSendService extends AbstractPipeService {
             .doOnNext(receiverRecord -> counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset()))
             .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(process(receiverRecord)),1, 1)
             .doOnNext(this::ack)
-            .subscribe();
+            .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {

@@ -41,6 +41,7 @@ public class PipePartitionedService extends AbstractPipeService {
                             senderResult.correlationMetadata().topicPartition().partition(),
                             senderResult.correlationMetadata().offset())))
             )
-            .subscribe();
+            .doOnError(e -> counterService.logError("PipePartitionedService failed!", e))
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 }

@@ -25,8 +25,8 @@ public class ApplicationProperties {
 
     private static final int KAFKA_RETRY_DEFAULT_NUMBER_OF_ATTEMPTS = 2;
 
-    public static final String DEFAULT_TOPIC_A = "a-p1";
-    public static final String DEFAULT_TOPIC_B = "b-p1";
+    public static final String DEFAULT_TOPIC_A = "a1";
+    public static final String DEFAULT_TOPIC_B = "b1";
     public static final String MODE_PIPE = "Pipe";
     public static final String MODE_CONSUME = "Consume";
     public static final String MODE_PRODUCE = "Produce";

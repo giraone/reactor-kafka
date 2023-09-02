@@ -27,6 +27,9 @@ public class CounterService {
     private final Counter counterAcknowledge;
     private final Counter counterCommit;
     private final Counter counterProduced;
+    private final Counter counterProcessed;
+    private final Counter counterError;
+    private final Counter counterPipelineStopped;
 
     public CounterService(MeterRegistry registry) {
         this.counterSend = registry.counter("pipeline.send");
@@ -34,6 +37,9 @@ public class CounterService {
         this.counterAcknowledge = registry.counter("pipeline.acknowledge");
         this.counterCommit = registry.counter("pipeline.commit");
         this.counterProduced = registry.counter("pipeline.produced");
+        this.counterProcessed = registry.counter("pipeline.processed");
+        this.counterError = registry.counter("pipeline.error");
+        this.counterPipelineStopped = registry.counter("pipeline.stopped");
     }
 
     public void logRateSend(int partition, long offset) {
@@ -61,8 +67,19 @@ public class CounterService {
         counterProduced.increment();
     }
 
-    public void logRate(String metric) {
-        logRateInternal(metric, -1, -1);
+    public void logRateProcessed() {
+        logRateInternal("TASK", -1, -1);
+        counterProcessed.increment();
+    }
+
+    public void logError(String errorMessage, Throwable throwable) {
+        LOGGER.error("ERROR! {} ", errorMessage, throwable);
+        counterError.increment();
+    }
+
+    public void logPipelineStoppedOnError(Throwable throwable) {
+        LOGGER.error("Pipeline stopped! ", throwable);
+        counterPipelineStopped.increment();
     }
 
     private void logRateInternal(String metric, int partition, long offset) {

@@ -43,8 +43,8 @@ public class ProduceService extends AbstractService {
                 })
             )
             .doOnNext(senderResult -> counterService.logRateSend(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
-            .doOnError(e -> LOGGER.error("Send failed", e))
-            .subscribe();
+            .doOnError(e -> counterService.logError("ProduceService failed!", e))
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 
     protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {

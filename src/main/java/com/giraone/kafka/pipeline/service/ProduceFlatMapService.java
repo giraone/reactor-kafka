@@ -40,8 +40,8 @@ public class ProduceFlatMapService extends AbstractService {
                 return reactiveKafkaProducerTemplate.send(SenderRecord.create(producerRecord, tuple.getT1()));
             })
             .doOnNext(senderResult -> counterService.logRateSend(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
-            .doOnError(e -> LOGGER.error("Send failed", e))
-            .subscribe();
+            .doOnError(e -> counterService.logError("ProduceFlatMapService failed!", e))
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 
     protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {
@@ -50,6 +50,6 @@ public class ProduceFlatMapService extends AbstractService {
         return Flux.range(s, limit - s)
             .delayElements(delay, schedulerForProduce)
             .map(nr -> Tuples.of(Long.toString(nr), Long.toString(System.currentTimeMillis())))
-            .doOnNext(t -> counterService.logRate("PROD"));
+            .doOnNext(t -> counterService.logRateProduced());
     }
 }

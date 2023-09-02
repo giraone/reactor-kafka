@@ -26,5 +26,5 @@ spring:
     mode: 'Pipe'
 
 application:
-  topic-a: 'a-p1'
-  topic-b: 'b-p1'
+  topic-a: 'atest'
+  topic-b: 'btest'

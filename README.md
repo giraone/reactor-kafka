@@ -27,13 +27,24 @@ Solution Pipe 2 and Pipe 3 do not start, when there are older events in topic, b
 ```shell
 mvn -Ploki package
 dockerize.sh
+cd docker
+
+# start all processes
 docker-compose up -d
+
+# start only subsystems, e.g. when running Spring Boot services locally and/or to manipulate topics before "topic auto creation" runs 
+docker-compose -f docker-compose-subsystems-only.yml up -d
+./kafka-create-topics.sh
+cd ..
+./consume.sh
+./pipe.sh
+./produce.sh
 ```
 
 ### Kafka
 
 - Broker: `kakfa-1:9092` via [docker-compose.yml](docker/docker-compose.yml)
-- Topics: `a-p1,b-p1`
+- Topics: `a1,b1`
 
 ### Docker containers
 

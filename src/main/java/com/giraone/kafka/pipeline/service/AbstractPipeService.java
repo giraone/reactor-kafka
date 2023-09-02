@@ -77,7 +77,7 @@ public abstract class AbstractPipeService extends AbstractService {
      * Here a simple convert toUpperCase.
      */
     protected String coreProcess(String input) {
-        counterService.logRate("TASK");
+        counterService.logRateProcessed();
         return input.toUpperCase(Locale.ROOT);
     }
 }

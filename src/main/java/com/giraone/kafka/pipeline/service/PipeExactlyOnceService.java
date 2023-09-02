@@ -30,8 +30,11 @@ public class PipeExactlyOnceService extends AbstractPipeService {
             .concatMap(consumerRecordFlux -> consumerRecordFlux
                 .doOnNext(consumerRecord -> counterService.logRateReceive(consumerRecord.partition(), consumerRecord.offset()))
                 .concatMap(consumerRecord -> reactiveKafkaProducerTemplate.send(process(consumerRecord))))
-                .concatWith(transactionManager.commit())
-            .onErrorResume(e -> transactionManager.abort().then(Mono.error(e)))
-            .subscribe();
+            .concatWith(transactionManager.commit())
+            .onErrorResume(e -> {
+                counterService.logError("PipeExactlyOnceService failed!", e);
+                return transactionManager.abort().then(Mono.error(e));
+            })
+            .subscribe(null, counterService::logPipelineStoppedOnError);
     }
 }
