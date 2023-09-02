@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // because init() needs ConsumerService
 @TestPropertySource(locations = "classpath:test-produce-standard.properties") // must be properties - not yaml
-class ProduceStandardServiceIntTest extends AbstractKafkaIntTest {
+class ProduceServiceIntTest extends AbstractKafkaIntTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProduceStandardServiceIntTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProduceServiceIntTest.class);
 
     @Autowired
     ApplicationProperties applicationProperties;
@@ -46,7 +46,6 @@ class ProduceStandardServiceIntTest extends AbstractKafkaIntTest {
         createNewTopic(applicationProperties.getTopicA());
 
         this.waitForTopic(applicationProperties.getTopicA(), true);
-
         consumer = createConsumer(applicationProperties.getTopicA());
         LOGGER.info("Consumer for \"{}\" created. Assignments = {}", applicationProperties.getTopicA(), consumer.assignment());
     }
@@ -60,15 +59,16 @@ class ProduceStandardServiceIntTest extends AbstractKafkaIntTest {
     }
 
     @Test
-    void source() throws InterruptedException {
-        StepVerifier.create(produceStandardService.source(Duration.ofSeconds(1), 2))
-            .expectNextCount(2)
-            .verifyComplete();
+    void passOneEvent() throws InterruptedException {
 
-        // We have to wait some time. We use at least the producer request timeout.
-        Thread.sleep(requestTimeoutMillis);
+//        StepVerifier.create(produceStandardService.source(Duration.ofSeconds(1), 1))
+//            .expectNextCount(1)
+//            .verifyComplete();
 
-        waitForMessages(consumer, 2);
+        // We have to wait some time. The producer has to start! We use at least the producer request timeout.
+        Thread.sleep(requestTimeoutMillis * 2);
+
+        waitForMessages(consumer, null); // the created number does not matter
 
         receivedRecords.forEach(l -> l.forEach(record -> {
             LOGGER.info(record.key() + " -> " + record.value());

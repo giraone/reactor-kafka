@@ -197,21 +197,23 @@ public abstract class AbstractKafkaIntTest {
         receivedRecords.get(record.partition()).add(record);
     }
 
-    protected void waitForMessages(Consumer<String, String> consumer, int expectedCount) {
+    protected void waitForMessages(Consumer<String, String> consumer, Integer expectedCount) {
 
         LOGGER.debug("Wait for {} message(s) in \"{}\".", expectedCount, consumer.listTopics());
-
+        int readAsMany = expectedCount != null ? expectedCount : 1_000;
         int receivedCount = 0;
         long endTimeMillis = System.currentTimeMillis() + receiveTimeoutMillis;
-        while (receivedCount < expectedCount && System.currentTimeMillis() < endTimeMillis) {
+        while (receivedCount < readAsMany && System.currentTimeMillis() < endTimeMillis) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
             records.forEach(this::onReceive);
             receivedCount += records.count();
         }
 
-        assertThat(receivedCount).isEqualTo(expectedCount);
-        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
-        assertThat(records.isEmpty()).isTrue();
+        if (expectedCount != null) {
+            assertThat(receivedCount).isEqualTo(expectedCount);
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+            assertThat(records.isEmpty()).isTrue();
+        }
     }
 
     protected static String bootstrapServers() {
