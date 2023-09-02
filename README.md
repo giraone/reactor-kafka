@@ -1,6 +1,7 @@
 # Reactive Spring Boot Kafka
 
-A Spring WebFlux project using [reactive Kafka](https://projectreactor.io/docs/kafka/release/reference/).
+A Spring WebFlux project using [reactive Kafka](https://projectreactor.io/docs/kafka/release/reference/)
+for performance and load testing different solutions, hwo to use *reactor kafka*.
 
 Basically the topology is
 
@@ -84,12 +85,152 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 - ShutdownHooks => dispose the subscription
 - receive vs. receiveAutoAck
 
-## Performance
+## Lessons learned
 
 ### Producer
 
-- SEND on `kafka-producer-network-thread | producer-1`
-- PRODUCE on `reactor-kafka-sender-9999999`
+*ProduceSendSource* `producerTemplate.send(source())` is fast - it reaches 250 ops, but it has no automatic support for **backpressure*.
+When creating 1000 events per second locally (`./produce.sh ProduceSendSource a4 1ms 10000`) the producer will end in an
+error `Could not emit tick 256 due to lack of requests (interval doesn't support small downstream requests that replenish slower than the ticks)`
+after the first 256 event are created.
+
+If the Producer produces slower, e.g. with only 200-250 instead of 1000 events per seconds `./produce.sh ProduceSendSource a4 5ms 10000` it works mostly.
+
+```
+2023-09-02T15:04:10.136+02:00  INFO 7740 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=200 offset=-1 total=607
+2023-09-02T15:04:10.558+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops/p=62 ops=229 offset=12816 total/p=188 total=692
+2023-09-02T15:04:10.584+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops/p=53 ops=228 offset=12420 total/p=161 total=697
+2023-09-02T15:04:10.615+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops/p=55 ops=228 offset=12758 total/p=169 total=703
+2023-09-02T15:04:10.618+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops/p=58 ops=228 offset=12789 total/p=179 total=704
+```
+
+**TODO:** How can we use backpressure in the ProduceSendSource code?
+
+*ProduceFlatMap* `source().flatMap(e -> producerTemplate.send(e))` can be called with `./produce.sh ProduceFlatMap a4 1ms 10000`.
+It will start creating with 280 ops and slowly reduce the throughput to 65 ops.
+
+```
+2023-09-02T15:02:20.810+02:00  INFO 11532 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=63 offset=-1 total=639
+2023-09-02T15:02:20.937+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops/p=15 ops=67 offset=12164 total/p=145 total=647
+2023-09-02T15:02:21.685+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops/p=18 ops=66 offset=12530 total/p=188 total=695
+2023-09-02T15:02:21.809+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops/p=16 ops=66 offset=12514 total/p=176 total=703
+2023-09-02T15:02:21.822+02:00  INFO 11532 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=63 offset=-1 total=704
+2023-09-02T15:02:21.856+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops/p=17 ops=66 offset=12553 total/p=181 total=706
+```
+
+### Pipe
+
+With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms false`
+
+```
+2023-09-02T15:19:04.784+02:00  INFO 12888 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=5359 total/p=83 total=83
+2023-09-02T15:19:04.786+02:00  INFO 12888 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=83
+```
+
+Hint: flapMap(concurreny=1 vs concurrency=4) no difference.
+
+With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms false`
+
+```
+2023-09-02T15:27:11.101+02:00  INFO 136 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9 ops=9 offset=8878 total/p=72 total=72
+2023-09-02T15:27:11.207+02:00  INFO 136 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=71
+2023-09-02T15:27:12.191+02:00  INFO 136 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9 ops=9 offset=8888 total/p=82 total=82
+2023-09-02T15:27:12.295+02:00  INFO 136 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=81
+```
+
+With *auto commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms true`
+
+```
+2023-09-02T15:25:02.578+02:00  INFO 14608 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1356 offset=-1 total=10864
+2023-09-02T15:25:03.074+02:00  INFO 14608 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=1550 ops=1350 offset=4658 total/p=4659 total=11556
+2023-09-02T15:25:03.579+02:00  INFO 14608 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1381 offset=-1 total=12445
+2023-09-02T15:25:03.579+02:00  INFO 14608 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1381 offset=-1 total=12446
+2023-09-02T15:25:04.075+02:00  INFO 14608 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=1615 ops=1398 offset=6470 total/p=6471 total=13368
+2023-09-02T15:25:04.580+02:00  INFO 14608 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1411 offset=-1 total=14128
+2023-09-02T15:25:04.581+02:00  INFO 14608 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1411 offset=-1 total=14129
+```
+
+With *auto commit* and slow processing: ./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms true
+
+```
+2023-09-02T15:22:55.875+02:00  INFO 8504 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=35 ops=35 offset=5951 total/p=221 total=221
+2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
+2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
+2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
+2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=177
+```
+
+---
+
+With *manual commit* and fast processing: `./pipe.sh PipeSendReceive a4 b4 pipe-SendReceive 0ms false`
+
+```
+2023-09-02T15:07:44.142+02:00  INFO 12496 --- [nder-1453062635] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=14 ops=14 offset=896 total/p=897 total=897
+2023-09-02T15:07:44.143+02:00  INFO 12496 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=898
+2023-09-02T15:07:44.143+02:00  INFO 12496 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=897
+2023-09-02T15:07:44.143+02:00  INFO 12496 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=900
+2023-09-02T15:07:44.143+02:00  INFO 12496 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=899
+2023-09-02T15:07:44.144+02:00  INFO 12496 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=901
+2023-09-02T15:07:44.144+02:00  INFO 12496 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=902
+2023-09-02T15:07:44.144+02:00  INFO 12496 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=903
+2023-09-02T15:07:44.144+02:00  INFO 12496 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=14 offset=-1 total=904
+```
+
+With *auto commit* and fast processing: `./pipe.sh PipeSendReceive a4 b4 pipe-SendReceive 0ms true`
+
+```
+2023-09-02T15:29:23.978+02:00  INFO 11004 --- [nder-1453062635] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=597 ops=597 offset=9160 total/p=8577 total=8577
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8543
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8544
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8546
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8541
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8545
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8547
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8542
+2023-09-02T15:29:23.979+02:00  INFO 11004 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=595 offset=-1 total=8548
+```
+
+---
+
+With *manual commit* and fast processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 0ms false`
+
+*all at once!*
+
+```
+2023-09-02T15:36:01.521+02:00  INFO 10044 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24021 offset=-1 total=24166
+2023-09-02T15:36:02.169+02:00  INFO 10044 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=6989 ops=27766 offset=11573 total/p=11574 total=45981
+2023-09-02T15:36:02.213+02:00  INFO 10044 --- [      worker-10] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9994 ops=27972 offset=11573 total/p=11574 total=47525
+```
+
+With *manual commit* and slow processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 100ms false`
+
+*all at once!*
+
+```
+2023-09-02T15:38:13.198+02:00  INFO 14368 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=90 total/p=91 total=91
+2023-09-02T15:38:13.309+02:00  INFO 14368 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=91
+2023-09-02T15:38:14.298+02:00  INFO 14368 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=100 total/p=101 total=101
+2023-09-02T15:38:14.409+02:00  INFO 14368 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=101
+```
+
+With *manual commit* and medium processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 10ms false`
+
+*all at once!*
+
+```
+2023-09-02T15:39:01.957+02:00  INFO 964 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=64 ops=64 offset=258 total/p=259 total=259
+2023-09-02T15:39:01.987+02:00  INFO 964 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=64 offset=-1 total=260
+2023-09-02T15:39:02.972+02:00  INFO 964 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=64 ops=64 offset=323 total/p=324 total=324
+2023-09-02T15:39:03.002+02:00  INFO 964 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=64 offset=-1 total=325
+
+```
+
+## Older Performance Results
+
+### Producer
+
+- SEND on `kafka-producer-network-thread | producer-1` thread
+- PRODUCE on `reactor-kafka-sender-9999999`  thread
 - Performance (all local): Total rate with 4 partitions approx. 650 events per second (produce only)
 - Performance (DATEV, 1 instance): Total rate with 16 partitions (produce only):
   - ack=all: 270 ops / 16-17 ops/partition
@@ -99,15 +240,6 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
   - ack=0, batchsize=262144: inger=<not-set>: 12000 ops
   - ack=1, linger=100: 9 ops (!)
   - ack=1, batchsize=262144, linger=10: 82 ops
-    
-### ProducerFlatMap
-
-- SEND on `kafka-producer-network-thread | producer-1`
-- PRODUCE on ` generate-1`
-
-### ProduceTransactional
-
-t.b.d.: *needs multiple topics*
 
 ### PipePartitioned
 
@@ -118,6 +250,7 @@ t.b.d.: *needs multiple topics*
 - Performance (DATEV, after 100.000 events available, pipe only):
   - 16 partitions / 16 Threads / 1 instance (commitBatchSize=10, maxPollRecords=500, maxPollInterval=PT30S): **33.000 events per second**.
   - 16 partitions / 8 Threads / 2 instances (commitBatchSize=10, maxPollRecords=500, maxPollInterval=PT30S): **38.000 events per second**.
+
 ### PipeReceiveSend
 
 - RECEIVE on `kafka-producer-network-thread | producer-1`
@@ -156,15 +289,3 @@ Total rate with 4 partitions approx. **1.000.000 events per second**.
 - [KafkaConsumerConfig](src/main/java/com/giraone/kafka/pipe/config/KafkaConsumerConfig.java)
 - [application.yml](src/main/resources/application.yml)
 - [pom.xml](pom.xml)
-
-### Extra code
-
-```java
-class Service {
-
-        LOGGER.debug(">>> k={}/v={}", receiverRecord.key(), receiverRecord.value());
-        LOGGER.debug("  > t={}/p={}/o={}", receiverRecord.topic(), receiverRecord.partition(), receiverRecord.receiverOffset());
-        LOGGER.debug("  < k={}/t={}/p={}/o={}", senderResult.correlationMetadata().offset(), senderResult.recordMetadata().topic(),
-            senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset());
-}
-```

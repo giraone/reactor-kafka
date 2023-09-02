@@ -26,7 +26,9 @@ public class ProduceFlatMapService extends AbstractProduceService {
 
     @Override
     public void start() {
-        source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
+
+        LOGGER.info("STARTING to produce {} events using ProduceFlatMapService.", maxNumberOfEvents);
+        source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
             .flatMap(tuple -> {
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
                 return reactiveKafkaProducerTemplate.send(SenderRecord.create(producerRecord, tuple.getT1()));

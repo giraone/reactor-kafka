@@ -13,9 +13,9 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
-public class ProduceStandardService extends AbstractProduceService {
+public class ProduceSendSourceService extends AbstractProduceService {
 
-    public ProduceStandardService(
+    public ProduceSendSourceService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate
@@ -28,7 +28,7 @@ public class ProduceStandardService extends AbstractProduceService {
     @Override
     public void start() {
 
-        LOGGER.info("STARTING to produce {} events.", maxNumberOfEvents);
+        LOGGER.info("STARTING to produce {} events using ProduceSendSourceService.", maxNumberOfEvents);
         reactiveKafkaProducerTemplate.send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
                 .map(tuple -> {
                     final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
@@ -48,6 +48,7 @@ public class ProduceStandardService extends AbstractProduceService {
             .take(limit)
             .map(ignored -> counter.getAndIncrement())
             .map(nr -> Tuples.of(Long.toString(nr), Long.toString(System.currentTimeMillis())))
-            .doOnNext(t -> counterService.logRateProduced());
+            .doOnNext(t -> counterService.logRateProduced())
+            ;
     }
 }

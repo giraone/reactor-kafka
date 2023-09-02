@@ -44,7 +44,7 @@ public class ApplicationProperties {
      */
     private boolean debugAgent;
     /**
-     * Mode: ProduceStandard, ProduceFlatMap, ProduceTransactional, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
+     * Mode: ProduceSendSource, ProduceFlatMap, ProduceTransactional, PipeSendReceive, PipeReceiveSend, PipePartitioned, PipeExactlyOnce, Consume
      */
     private String mode = MODE_PIPE;
     /**

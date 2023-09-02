@@ -93,7 +93,7 @@ public class KafkaConsumerConfig {
             ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, props.get(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG),
             ConsumerConfig.MAX_POLL_RECORDS_CONFIG, props.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG)
         );
-        LOGGER.info("Other default configs: {}={}",
+        LOGGER.info("Other Kafka configs: {}={}",
             ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, props.get(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG)
         );
         return ret;

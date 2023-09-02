@@ -104,7 +104,7 @@ services:
     environment:
       - SPRING_APPLICATION_NAME=produce # the name is shown in the log and used in metrics
       - SPRING_PROFILES_ACTIVE=docker
-      - APPLICATION_MODE=ProduceStandard
+      - APPLICATION_MODE=ProduceSendSource
       - APPLICATION_PRODUCE_INTERVAL=100ms
       - APPLICATION_TOPIC_A=a1
 

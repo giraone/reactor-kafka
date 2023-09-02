@@ -27,7 +27,8 @@ public class ProduceTransactionalService extends AbstractProduceService {
     @Override
     public void start() {
 
-        source(applicationProperties.getProduceInterval(), Integer.MAX_VALUE)
+        LOGGER.info("STARTING to produce {} events using ProduceTransactionalService.", maxNumberOfEvents);
+        source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
             .flatMap(tuple -> {
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
                 return reactiveKafkaProducerTemplate.sendTransactionally(SenderRecord.create(producerRecord, tuple.getT1()));

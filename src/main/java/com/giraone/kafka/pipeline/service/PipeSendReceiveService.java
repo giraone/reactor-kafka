@@ -39,7 +39,6 @@ public class PipeSendReceiveService extends PipeService {
 
     private void ack(SenderResult<ReceiverOffset> senderResult) {
 
-
         if (applicationProperties.getConsumer().isAutoCommit()) {
             senderResult.correlationMetadata().acknowledge();
         } else {
