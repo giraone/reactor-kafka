@@ -1,5 +1,6 @@
 package com.giraone.kafka.pipeline.config;
 
+import com.giraone.kafka.pipeline.config.properties.KafkaConsumerProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
@@ -59,7 +60,7 @@ public class KafkaConsumerConfig {
 
         final ReceiverOptions<String, String> basicReceiverOptions = ReceiverOptions.create(props);
 
-        final ApplicationProperties.ConsumerProperties consumerProperties = applicationProperties.getConsumer();
+        final KafkaConsumerProperties consumerProperties = applicationProperties.getConsumer();
         if (consumerProperties.isAutoCommit()) {
             basicReceiverOptions
                 .commitInterval(consumerProperties.getCommitInterval())

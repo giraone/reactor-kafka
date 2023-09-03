@@ -120,106 +120,112 @@ It will start creating with 280 ops and slowly reduce the throughput to 65 ops.
 
 ### Pipe
 
-With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms false`
+With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms newParallel`
 
 ```
-2023-09-02T15:19:04.784+02:00  INFO 12888 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=5359 total/p=83 total=83
-2023-09-02T15:19:04.786+02:00  INFO 12888 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=83
+2023-09-03T17:55:59.488+02:00  INFO 2432 --- [e-ReceiveSend-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=40 ops=40 offset=9940 total/p=41 total=41
+2023-09-03T17:55:59.492+02:00  INFO 2432 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=44 offset=-1 total=49
+2023-09-03T17:55:59.494+02:00  INFO 2432 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=47 offset=-1 total=52
+2023-09-03T17:55:59.492+02:00  INFO 2432 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=45 offset=-1 total=50
+2023-09-03T17:55:59.493+02:00  INFO 2432 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=46 offset=-1 total=51
+2023-09-03T17:56:00.585+02:00  INFO 2432 --- [e-ReceiveSend-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=38 ops=38 offset=9980 total/p=81 total=81
+2023-09-03T17:56:00.589+02:00  INFO 2432 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=40 offset=-1 total=89
+2023-09-03T17:56:00.589+02:00  INFO 2432 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=40 offset=-1 total=90
+2023-09-03T17:56:00.589+02:00  INFO 2432 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=91
+2023-09-03T17:56:00.590+02:00  INFO 2432 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=92
+2023-09-03T17:56:01.667+02:00  INFO 2432 --- [e-ReceiveSend-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=37 ops=37 offset=10020 total/p=121 total=121
+2023-09-03T17:56:01.670+02:00  INFO 2432 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=39 offset=-1 total=129
+2023-09-03T17:56:01.671+02:00  INFO 2432 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=40 offset=-1 total=132
+2023-09-03T17:56:01.670+02:00  INFO 2432 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=39 offset=-1 total=130
+2023-09-03T17:56:01.671+02:00  INFO 2432 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=39 offset=-1 total=131
+2023-09-03T17:56:02.752+02:00  INFO 2432 --- [e-ReceiveSend-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=37 ops=37 offset=10060 total/p=161 total=161
+2023-09-03T17:56:02.752+02:00  INFO 2432 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=38 offset=-1 total=169
+2023-09-03T17:56:02.752+02:00  INFO 2432 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=38 offset=-1 total=170
+2023-09-03T17:56:02.752+02:00  INFO 2432 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=39 offset=-1 total=171
+2023-09-03T17:56:02.752+02:00  INFO 2432 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=39 offset=-1 total=172
+2023-09-03T17:56:03.301+02:00  INFO 2432 --- [allelConsumer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=52 ops=52 offset=10154 total/p=257 total=257
 ```
 
-Hint: flapMap(concurreny=1 vs concurrency=4) no difference.
-
-With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms false`
+With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms newParallel`
 
 ```
-2023-09-02T15:27:11.101+02:00  INFO 136 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9 ops=9 offset=8878 total/p=72 total=72
-2023-09-02T15:27:11.207+02:00  INFO 136 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=71
-2023-09-02T15:27:12.191+02:00  INFO 136 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9 ops=9 offset=8888 total/p=82 total=82
-2023-09-02T15:27:12.295+02:00  INFO 136 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=81
-```
-
-With *auto commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms true`
-
-```
-2023-09-02T15:25:02.578+02:00  INFO 14608 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1356 offset=-1 total=10864
-2023-09-02T15:25:03.074+02:00  INFO 14608 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=1550 ops=1350 offset=4658 total/p=4659 total=11556
-2023-09-02T15:25:03.579+02:00  INFO 14608 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1381 offset=-1 total=12445
-2023-09-02T15:25:03.579+02:00  INFO 14608 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1381 offset=-1 total=12446
-2023-09-02T15:25:04.075+02:00  INFO 14608 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=1615 ops=1398 offset=6470 total/p=6471 total=13368
-2023-09-02T15:25:04.580+02:00  INFO 14608 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1411 offset=-1 total=14128
-2023-09-02T15:25:04.581+02:00  INFO 14608 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=1411 offset=-1 total=14129
-```
-
-With *auto commit* and slow processing: ./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms true
-
-```
-2023-09-02T15:22:55.875+02:00  INFO 8504 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=35 ops=35 offset=5951 total/p=221 total=221
-2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
-2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
-2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=179
-2023-09-02T15:22:56.106+02:00  INFO 8504 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=28 offset=-1 total=177
-```
-
----
-
-With *manual commit* and fast processing: `./pipe.sh PipeSendReceive a4 b4 pipe-SendReceive 0ms false`
-
-```
-2023-09-02T15:48:57.302+02:00  INFO 5724 --- [nder-1453062635] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=24 ops=24 offset=512 total/p=513 total=513
-2023-09-02T15:48:57.303+02:00  INFO 5724 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=515
-2023-09-02T15:48:57.303+02:00  INFO 5724 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=513
-2023-09-02T15:48:57.304+02:00  INFO 5724 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=519
-2023-09-02T15:48:57.304+02:00  INFO 5724 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=25 offset=-1 total=519
-2023-09-02T15:48:57.303+02:00  INFO 5724 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=516
-2023-09-02T15:48:57.304+02:00  INFO 5724 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=517
-2023-09-02T15:48:57.304+02:00  INFO 5724 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=25 offset=-1 total=520
-2023-09-02T15:48:57.303+02:00  INFO 5724 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24 offset=-1 total=514
-```
-
-With *auto commit* and fast processing: `./pipe.sh PipeSendReceive a4 b4 pipe-SendReceive 0ms true`
-
-```
-2023-09-02T15:50:14.390+02:00  INFO 2856 --- [nder-1453062635] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=590 ops=590 offset=2240 total/p=2241 total=2241
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=590 offset=-1 total=2241
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-3] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=589 offset=-1 total=2238
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=590 offset=-1 total=2242
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=589 offset=-1 total=2239
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=591 offset=-1 total=2243
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=591 offset=-1 total=2244
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-5] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=590 offset=-1 total=2240
-2023-09-02T15:50:14.391+02:00  INFO 2856 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=591 offset=-1 total=2245
+2023-09-03T17:58:37.634+02:00  INFO 11032 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=18 offset=-1 total=19
+2023-09-03T17:58:37.634+02:00  INFO 11032 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=18 offset=-1 total=19
+2023-09-03T17:58:37.634+02:00  INFO 11032 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=18 offset=-1 total=19
+2023-09-03T17:58:37.634+02:00  INFO 11032 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=19 offset=-1 total=20
+2023-09-03T17:58:37.748+02:00  INFO 11032 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=38 ops=38 offset=10248 total/p=41 total=41
+2023-09-03T17:58:38.730+02:00  INFO 11032 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=17 offset=-1 total=38
+2023-09-03T17:58:38.730+02:00  INFO 11032 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=16 offset=-1 total=36
+2023-09-03T17:58:38.730+02:00  INFO 11032 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=17 offset=-1 total=37
+2023-09-03T17:58:38.730+02:00  INFO 11032 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=16 offset=-1 total=35
+2023-09-03T17:58:38.849+02:00  INFO 11032 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=37 ops=37 offset=10287 total/p=81 total=81
+2023-09-03T17:58:39.815+02:00  INFO 11032 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=22 offset=-1 total=72
+2023-09-03T17:58:39.815+02:00  INFO 11032 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=22 offset=-1 total=72
+2023-09-03T17:58:39.815+02:00  INFO 11032 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=22 offset=-1 total=72
+2023-09-03T17:58:39.815+02:00  INFO 11032 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=22 offset=-1 total=72
+2023-09-03T17:58:39.928+02:00  INFO 11032 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=37 ops=37 offset=10328 total/p=121 total=121
+2023-09-03T17:58:40.905+02:00  INFO 11032 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=23 offset=-1 total=100
+2023-09-03T17:58:40.905+02:00  INFO 11032 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=23 offset=-1 total=100
+2023-09-03T17:58:40.905+02:00  INFO 11032 --- [     parallel-9] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=23 offset=-1 total=100
+2023-09-03T17:58:40.905+02:00  INFO 11032 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=23 offset=-1 total=100
+2023-09-03T17:58:41.017+02:00  INFO 11032 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SENT/2: ops/p=37 ops=37 offset=10366 total/p=161 total=161
+2023-09-03T17:58:41.672+02:00  INFO 11032 --- [allelConsumer-1] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=49 ops=49 offset=10461 total/p=257 total=257
 ```
 
 ---
 
-With *manual commit* and fast processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 0ms false`
-
-*all at once!*
+With *manual commit* and fast processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 0ms newElastic`
 
 ```
-2023-09-02T15:36:01.521+02:00  INFO 10044 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=24021 offset=-1 total=24166
-2023-09-02T15:36:02.169+02:00  INFO 10044 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=6989 ops=27766 offset=11573 total/p=11574 total=45981
-2023-09-02T15:36:02.213+02:00  INFO 10044 --- [      worker-10] c.g.k.pipeline.service.CounterService    : RECV/2: ops/p=9994 ops=27972 offset=11573 total/p=11574 total=47525
+2023-09-03T18:01:17.797+02:00  INFO 11124 --- [pePartitioned-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=62
+2023-09-03T18:01:17.797+02:00  INFO 11124 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=62 total/p=63 total=63
+2023-09-03T18:01:18.894+02:00  INFO 11124 --- [pePartitioned-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=72
+2023-09-03T18:01:18.895+02:00  INFO 11124 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=72 total/p=73 total=73
+2023-09-03T18:01:19.985+02:00  INFO 11124 --- [pePartitioned-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=82
+2023-09-03T18:01:19.987+02:00  INFO 11124 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=82 total/p=83 total=83
+2023-09-03T18:01:21.079+02:00  INFO 11124 --- [pePartitioned-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=92
+2023-09-03T18:01:21.080+02:00  INFO 11124 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=92 total/p=93 total=93
+2023-09-03T18:01:22.186+02:00  INFO 11124 --- [pePartitioned-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=102
+2023-09-03T18:01:22.188+02:00  INFO 11124 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=102 total/p=103 total=103
 ```
 
-With *manual commit* and slow processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 100ms false`
+With *manual commit* and slow processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 100ms newElastic`
 
 ```
-2023-09-02T15:38:13.198+02:00  INFO 14368 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=90 total/p=91 total=91
-2023-09-02T15:38:13.309+02:00  INFO 14368 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=91
-2023-09-02T15:38:14.298+02:00  INFO 14368 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=100 total/p=101 total=101
-2023-09-02T15:38:14.409+02:00  INFO 14368 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=101
+2023-09-03T18:02:15.237+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=159 total/p=10 total=10
+2023-09-03T18:02:15.346+02:00  INFO 7992 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=10
+2023-09-03T18:02:16.327+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=169 total/p=20 total=20
+2023-09-03T18:02:16.437+02:00  INFO 7992 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=20
+2023-09-03T18:02:17.431+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=179 total/p=30 total=30
+2023-09-03T18:02:17.541+02:00  INFO 7992 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=30
+2023-09-03T18:02:18.531+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=189 total/p=40 total=40
+2023-09-03T18:02:18.641+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=40
+2023-09-03T18:02:19.637+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=199 total/p=50 total=50
+2023-09-03T18:02:19.748+02:00  INFO 7992 --- [     parallel-4] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=50
+2023-09-03T18:02:20.736+02:00  INFO 7992 --- [     parallel-2] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=9 ops=9 offset=209 total/p=60 total=60
+2023-09-03T18:02:20.846+02:00  INFO 7992 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=9 offset=-1 total=60
 ```
 
-With *manual commit* and medium processing: `./pipe.sh PipePartitioned a4 b4 pipe-PipePartitioned 10ms false`
+With *manual commit* and fast processing: `./pipe.sh PipeSendReceive a4 b4 pipe-SendReceive 0ms newElastic`
 
 ```
-2023-09-02T15:39:01.957+02:00  INFO 964 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=64 ops=64 offset=258 total/p=259 total=259
-2023-09-02T15:39:01.987+02:00  INFO 964 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=64 offset=-1 total=260
-2023-09-02T15:39:02.972+02:00  INFO 964 --- [       worker-3] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=64 ops=64 offset=323 total/p=324 total=324
-2023-09-02T15:39:03.002+02:00  INFO 964 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=64 offset=-1 total=325
-
+2023-09-03T18:04:12.241+02:00  INFO 7960 --- [ender-703555670] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=50 ops=50 offset=10599 total/p=261 total=261
+2023-09-03T18:04:12.243+02:00  INFO 7960 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=50 offset=-1 total=260
+2023-09-03T18:04:12.243+02:00  INFO 7960 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=51 offset=-1 total=263
+2023-09-03T18:04:12.243+02:00  INFO 7960 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=51 offset=-1 total=262
+2023-09-03T18:04:12.243+02:00  INFO 7960 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=50 offset=-1 total=261
+2023-09-03T18:04:17.489+02:00  INFO 7960 --- [ender-703555670] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=43 ops=43 offset=10791 total/p=453 total=453
+2023-09-03T18:04:17.491+02:00  INFO 7960 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=43 offset=-1 total=452
+2023-09-03T18:04:17.491+02:00  INFO 7960 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=43 offset=-1 total=450
+2023-09-03T18:04:17.491+02:00  INFO 7960 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=43 offset=-1 total=451
+2023-09-03T18:04:17.491+02:00  INFO 7960 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=43 offset=-1 total=453
+2023-09-03T18:04:22.636+02:00  INFO 7960 --- [ender-703555670] c.g.k.pipeline.service.CounterService    : RECV/3: ops/p=41 ops=41 offset=10983 total/p=645 total=645
+2023-09-03T18:04:22.636+02:00  INFO 7960 --- [     parallel-6] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=641
+2023-09-03T18:04:22.636+02:00  INFO 7960 --- [     parallel-7] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=642
+2023-09-03T18:04:22.637+02:00  INFO 7960 --- [     parallel-8] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=643
+2023-09-03T18:04:22.637+02:00  INFO 7960 --- [     parallel-1] c.g.k.pipeline.service.CounterService    : TASK/-1: ops=41 offset=-1 total=644
 ```
+
 
 ## Older Performance Results
 

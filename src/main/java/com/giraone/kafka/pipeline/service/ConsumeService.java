@@ -35,7 +35,7 @@ public class ConsumeService extends AbstractService {
 
     protected void consume(ReceiverRecord<String, String> receiverRecord) {
 
-        counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset());
+        counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset());
     }
 
     protected void ack(ReceiverRecord<String, String> receiverRecord) {
@@ -45,6 +45,6 @@ public class ConsumeService extends AbstractService {
         } else {
             receiverRecord.receiverOffset().commit().block();
         }
-        counterService.logRateAcknowledge(receiverRecord.partition(), receiverRecord.offset());
+        counterService.logRateAcknowledged(receiverRecord.partition(), receiverRecord.offset());
     }
 }

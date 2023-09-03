@@ -58,9 +58,9 @@ class ProduceServiceIntTest extends AbstractKafkaIntTest {
     @Test
     void passOneEvent() throws InterruptedException {
 
-//        StepVerifier.create(produceStandardService.source(Duration.ofSeconds(1), 1))
-//            .expectNextCount(1)
-//            .verifyComplete();
+        //        StepVerifier.create(produceStandardService.source(Duration.ofSeconds(1), 1))
+        //            .expectNextCount(1)
+        //            .verifyComplete();
 
         // We have to wait some time. The producer has to start! We use at least the producer request timeout.
         Thread.sleep(requestTimeoutMillis * 2);

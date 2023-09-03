@@ -4,8 +4,6 @@ import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
-import reactor.kafka.receiver.ReceiverOffset;
-import reactor.kafka.sender.SenderResult;
 
 @Service
 public class PipeSendReceiveService extends PipeService {
@@ -27,22 +25,19 @@ public class PipeSendReceiveService extends PipeService {
         reactiveKafkaProducerTemplate
             .send(
                 reactiveKafkaConsumerTemplate.receive()
+                    // this is the Kafka consume retry
                     .retryWhen(retry)
-                    .doOnNext(receiverRecord -> counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset()))
-                    .flatMap(this::process)
+                    // log the received event
+                    .doOnNext(receiverRecord -> counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset()))
+                    // perform the pipe task
+                    .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
             )
-            .doOnNext(this::ack)
+            // commit every processed record
+            .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
+            // log any error
             .doOnError(e -> counterService.logError("PipeSendReceiveService failed!", e))
-            .subscribe(null, counterService::logMainLoopError);
+            // subscription main loop - restart on unhandled errors
+            .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
-    }
-
-    private void ack(SenderResult<ReceiverOffset> senderResult) {
-
-        if (applicationProperties.getConsumer().isAutoCommit()) {
-            senderResult.correlationMetadata().acknowledge();
-        } else {
-            senderResult.correlationMetadata().commit().block();
-        }
     }
 }

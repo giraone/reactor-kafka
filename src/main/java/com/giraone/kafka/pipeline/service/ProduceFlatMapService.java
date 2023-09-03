@@ -33,7 +33,7 @@ public class ProduceFlatMapService extends AbstractProduceService {
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
                 return reactiveKafkaProducerTemplate.send(SenderRecord.create(producerRecord, tuple.getT1()));
             })
-            .doOnNext(senderResult -> counterService.logRateSend(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
+            .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> counterService.logError("ProduceFlatMapService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
         counterService.logMainLoopStarted();

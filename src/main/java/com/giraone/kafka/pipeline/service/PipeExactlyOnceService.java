@@ -28,14 +28,14 @@ public class PipeExactlyOnceService extends PipeService {
         final TransactionManager transactionManager = reactiveKafkaProducerTemplate.transactionManager();
         reactiveKafkaConsumerTemplate.receiveExactlyOnce(transactionManager)
             .concatMap(consumerRecordFlux -> consumerRecordFlux
-                .doOnNext(consumerRecord -> counterService.logRateReceive(consumerRecord.partition(), consumerRecord.offset()))
+                .doOnNext(consumerRecord -> counterService.logRateReceived(consumerRecord.partition(), consumerRecord.offset()))
                 .concatMap(consumerRecord -> reactiveKafkaProducerTemplate.send(process(consumerRecord))))
             .concatWith(transactionManager.commit())
             .onErrorResume(e -> {
                 counterService.logError("PipeExactlyOnceService failed!", e);
                 return transactionManager.abort().then(Mono.error(e));
             })
-            .subscribe(null, counterService::logMainLoopError);
+            .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
     }
 }

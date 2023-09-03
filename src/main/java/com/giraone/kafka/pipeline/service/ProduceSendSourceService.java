@@ -35,7 +35,7 @@ public class ProduceSendSourceService extends AbstractProduceService {
                     return SenderRecord.create(producerRecord, tuple.getT1());
                 })
             )
-            .doOnNext(senderResult -> counterService.logRateSend(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
+            .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> counterService.logError("ProduceService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
         counterService.logMainLoopStarted();

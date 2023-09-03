@@ -4,8 +4,6 @@ import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
-import reactor.kafka.receiver.ReceiverOffset;
-import reactor.kafka.sender.SenderResult;
 
 @Service
 public class PipeReceiveSendService extends PipeService {
@@ -25,21 +23,24 @@ public class PipeReceiveSendService extends PipeService {
     public void start() {
 
         reactiveKafkaConsumerTemplate.receive()
-            .doOnNext(receiverRecord -> counterService.logRateReceive(receiverRecord.partition(), receiverRecord.offset()))
+            // this is the Kafka consume retry
+            .retryWhen(applicationProperties.getConsumer().getRetrySpecification().toRetry())
+            // log the received event
+            .doOnNext(receiverRecord -> counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset()))
+            // perform processing on another scheduler
             .publishOn(scheduler)
-            .flatMap(receiverRecord -> reactiveKafkaProducerTemplate.send(process(receiverRecord)), applicationProperties.getConsumer().getThreads(), 1)
-            .doOnNext(this::ack)
+            // perform the pipe task
+            .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
+            // send result to target topic
+            .flatMap(reactiveKafkaProducerTemplate::send, applicationProperties.getConsumer().getConcurrency(), 1)
+            // log the record that was sent
+            .doOnNext(this::logSent)
+            // commit every processed record
+            .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
+            // log any error
             .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
-            .subscribe(null, counterService::logMainLoopError);
+            // subscription main loop - restart on unhandled errors
+            .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
-    }
-
-    private void ack(SenderResult<ReceiverOffset> senderResult) {
-
-        if (applicationProperties.getConsumer().isAutoCommit()) {
-            senderResult.correlationMetadata().acknowledge();
-        } else {
-            senderResult.correlationMetadata().commit().block();
-        }
     }
 }

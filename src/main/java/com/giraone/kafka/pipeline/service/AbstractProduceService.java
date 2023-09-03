@@ -21,7 +21,7 @@ public abstract class AbstractProduceService extends AbstractService {
     ) {
         super(applicationProperties, counterService);
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
-        this.maxNumberOfEvents = applicationProperties.getProducer().getMaxNumberOfEvents();
+        this.maxNumberOfEvents = applicationProperties.getProducerVariables().getMaxNumberOfEvents();
         this.topicOutput = applicationProperties.getTopicA();
     }
 }

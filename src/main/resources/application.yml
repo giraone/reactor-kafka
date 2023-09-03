@@ -33,7 +33,7 @@ spring:
 application:
   topic-a: 'a1'
   topic-b: 'b1'
-  producer:
+  producer-variables:
     max-number-of-events: 1000000 # Default 1000000.
   consumer:
     max-poll-records: 500 # Default 500.

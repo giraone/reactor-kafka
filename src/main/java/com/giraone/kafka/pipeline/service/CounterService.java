@@ -22,10 +22,10 @@ public class CounterService {
     private final Map<String, Map<Integer, BeforeAndNowCounter>> counterPerMetric = new HashMap<>();
     private final Map<String, BeforeAndNowCounter> totalCounterPerMetric = new HashMap<>();
 
-    private final Counter counterSend;
-    private final Counter counterReceive;
-    private final Counter counterAcknowledge;
-    private final Counter counterCommit;
+    private final Counter counterSent;
+    private final Counter counterReceived;
+    private final Counter counterAcknowledged;
+    private final Counter counterCommitted;
     private final Counter counterProduced;
     private final Counter counterProcessed;
     private final Counter counterError;
@@ -33,35 +33,35 @@ public class CounterService {
     private final Counter counterMainLoopStopped;
 
     public CounterService(MeterRegistry registry) {
-        this.counterSend = registry.counter("pipeline.send");
-        this.counterReceive = registry.counter("pipeline.receive");
-        this.counterAcknowledge = registry.counter("pipeline.acknowledge");
-        this.counterCommit = registry.counter("pipeline.commit");
+        this.counterSent = registry.counter("pipeline.sent");
+        this.counterReceived = registry.counter("pipeline.received");
+        this.counterAcknowledged = registry.counter("pipeline.acknowledged");
+        this.counterCommitted = registry.counter("pipeline.committed");
         this.counterProduced = registry.counter("pipeline.produced");
         this.counterProcessed = registry.counter("pipeline.processed");
         this.counterError = registry.counter("pipeline.error");
-        this.counterMainLoopStarted = registry.counter("pipeline.mainloop.started");
-        this.counterMainLoopStopped = registry.counter("pipeline.mainloop.stopped");
+        this.counterMainLoopStarted = registry.counter("pipeline.loop.started");
+        this.counterMainLoopStopped = registry.counter("pipeline.loop.stopped");
     }
 
-    public void logRateSend(int partition, long offset) {
-        logRateInternal("SEND", partition, offset);
-        counterSend.increment();
+    public void logRateSent(int partition, long offset) {
+        logRateInternal("SENT", partition, offset);
+        counterSent.increment();
     }
 
-    public void logRateReceive(int partition, long offset) {
+    public void logRateReceived(int partition, long offset) {
         logRateInternal("RECV", partition, offset);
-        counterReceive.increment();
+        counterReceived.increment();
     }
 
-    public void logRateAcknowledge(int partition, long offset) {
+    public void logRateAcknowledged(int partition, long offset) {
         logRateInternal("ACKN", partition, offset);
-        counterAcknowledge.increment();
+        counterAcknowledged.increment();
     }
 
-    public void logRateCommit(int partition, long offset) {
+    public void logRateCommitted(int partition, long offset) {
         logRateInternal("CMMT", partition, offset);
-        counterCommit.increment();
+        counterCommitted.increment();
     }
 
     public void logRateProduced() {
