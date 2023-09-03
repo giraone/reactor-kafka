@@ -6,7 +6,7 @@ import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PipePartitionedService extends PipeService {
+public class PipePartitionedService extends AbstractPipeService {
 
     public PipePartitionedService(
         ApplicationProperties applicationProperties,
@@ -23,20 +23,16 @@ public class PipePartitionedService extends PipeService {
     @Override
     public void start() { // receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
 
-        reactiveKafkaConsumerTemplate.receive()
-            // this is the Kafka consume retry
-            .retryWhen(retry)
+        this.receiveWithRetry()
             // group by partition to guarantee ordering
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
             .flatMap(partitionFlux ->
                 // See https://projectreactor.io/docs/kafka/release/reference/ - chapter 5.12
                 partitionFlux.publishOn(scheduler)
-                    // log the received event
-                    .doOnNext(receiverRecord -> counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset()))
                     // perform the pipe task - TODO: is flatMap an option?
                     .concatMap(this::process)
                     // send result to target topic
-                    .concatMap(reactiveKafkaProducerTemplate::send)
+                    .concatMap(this::send)
                     // sample() disabled, because it caused "Can't signal value due to lack of requests" errors.
                     // .sample(applicationProperties.getConsumer().getCommitInterval()) // Commit periodically
                     // commit every processed record

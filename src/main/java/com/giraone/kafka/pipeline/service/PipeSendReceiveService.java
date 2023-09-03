@@ -6,7 +6,7 @@ import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PipeSendReceiveService extends PipeService {
+public class PipeSendReceiveService extends AbstractPipeService {
 
     public PipeSendReceiveService(
         ApplicationProperties applicationProperties,

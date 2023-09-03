@@ -6,7 +6,7 @@ import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PipeReceiveSendService extends PipeService {
+public class PipeReceiveSendService extends AbstractPipeService {
 
     public PipeReceiveSendService(
         ApplicationProperties applicationProperties,
@@ -22,19 +22,13 @@ public class PipeReceiveSendService extends PipeService {
     @Override
     public void start() {
 
-        reactiveKafkaConsumerTemplate.receive()
-            // this is the Kafka consume retry
-            .retryWhen(applicationProperties.getConsumer().getRetrySpecification().toRetry())
-            // log the received event
-            .doOnNext(receiverRecord -> counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset()))
+        this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(scheduler)
             // perform the pipe task
             .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
             // send result to target topic
-            .flatMap(reactiveKafkaProducerTemplate::send, applicationProperties.getConsumer().getConcurrency(), 1)
-            // log the record that was sent
-            .doOnNext(this::logSent)
+            .flatMap(this::send, applicationProperties.getConsumer().getConcurrency(), 1)
             // commit every processed record
             .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
             // log any error

@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 import reactor.kafka.sender.TransactionManager;
 
 @Service
-public class PipeExactlyOnceService extends PipeService {
+public class PipeExactlyOnceService extends AbstractPipeService {
 
     public PipeExactlyOnceService(
         ApplicationProperties applicationProperties,

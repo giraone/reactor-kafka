@@ -90,23 +90,23 @@ services:
     ports:
       - "3000:3000"
 
-  produce:
-    image: reactor-kafka
-    hostname: produce
-    container_name: produce
-    depends_on:
-      - kafka-1
-      - loki
-    networks:
-      - kafka
-    ports:
-      - "8081:8080"
-    environment:
-      - SPRING_APPLICATION_NAME=produce # the name is shown in the log and used in metrics
-      - SPRING_PROFILES_ACTIVE=docker
-      - APPLICATION_MODE=ProduceSendSource
-      - APPLICATION_PRODUCE_INTERVAL=100ms
-      - APPLICATION_TOPIC_A=a1
+#  produce:
+#    image: reactor-kafka
+#    hostname: produce
+#    container_name: produce
+#    depends_on:
+#      - kafka-1
+#      - loki
+#    networks:
+#      - kafka
+#    ports:
+#      - "8081:8080"
+#    environment:
+#      - SPRING_APPLICATION_NAME=produce # the name is shown in the log and used in metrics
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - APPLICATION_MODE=ProduceSendSource
+#      - APPLICATION_PRODUCE_INTERVAL=100ms
+#      - APPLICATION_TOPIC_A=a4
 
   pipe:
     image: reactor-kafka
@@ -121,30 +121,35 @@ services:
       - "8082:8080"
     environment:
       - SPRING_APPLICATION_NAME=pipe # the name is shown in the log and used in metrics
-      - SPRING_PROFILES_ACTIVE=docker
-      - APPLICATION_MODE=PipeReceiveSend
-      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
-      - APPLICATION_PROCESSING_TIME=10ms
-      - APPLICATION_TOPIC_A=a1
-      - APPLICATION_TOPIC_B=b1
+      - SPRING_PROFILES_ACTIVE=docker,loki
+      - APPLICATION_MODE=PipePartitioned
+      - APPLICATION_TOPIC_A=a4
+      - APPLICATION_TOPIC_B=b4
+      - APPLICATION_CONSUMER_GROUP_ID=pipe-docker3
+      - APPLICATION_PROCESSING_TIME=0ms
+      - APPLICATION_CONSUMER_SCHEDULER_TYPE=newParallel
+      - APPLICATION_CONSUMER_MAX_POLL_RECORDS=1
+      - APPLICATION_CONSUMER_MAX_POLL_INTERVAL=5s
+      - APPLICATION_LOKI_HOST=loki
+      - APPLICATION_LOKI_PORT=3100
 
-  consume:
-    image: reactor-kafka
-    hostname: consume
-    container_name: consume
-    depends_on:
-      - kafka-1
-      - loki
-    networks:
-      - kafka
-    ports:
-      - "8083:8080"
-    environment:
-      - SPRING_APPLICATION_NAME=consume # the name is shown in the log and used in metrics
-      - SPRING_PROFILES_ACTIVE=docker
-      - APPLICATION_MODE=Consume
-      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
-      - APPLICATION_TOPIC_B=b1
+#  consume:
+#    image: reactor-kafka
+#    hostname: consume
+#    container_name: consume
+#    depends_on:
+#      - kafka-1
+#      - loki
+#    networks:
+#      - kafka
+#    ports:
+#      - "8083:8080"
+#    environment:
+#      - SPRING_APPLICATION_NAME=consume # the name is shown in the log and used in metrics
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - APPLICATION_MODE=Consume
+#      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
+#      - APPLICATION_TOPIC_B=b4
 
 networks:
   kafka:

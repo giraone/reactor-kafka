@@ -72,7 +72,7 @@ public class KafkaConsumerProperties {
      * Kafka default = 30 seconds.
      * This places an upper bound on the amount of time that the consumer can be idle before fetching more records.
      */
-    private Duration maxPollInterval = Duration.ofSeconds(30);
+    private Duration maxPollInterval = Duration.ofSeconds(30); // Kafka default = 30
     /**
      * The maximum amount of data the server should return for a fetch request.
      * Kafka default = 50MByte.
