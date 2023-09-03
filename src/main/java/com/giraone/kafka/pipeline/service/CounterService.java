@@ -22,23 +22,26 @@ public class CounterService {
     private final Map<String, Map<Integer, BeforeAndNowCounter>> counterPerMetric = new HashMap<>();
     private final Map<String, BeforeAndNowCounter> totalCounterPerMetric = new HashMap<>();
 
-    private final Counter counterSent;
-    private final Counter counterReceived;
-    private final Counter counterAcknowledged;
-    private final Counter counterCommitted;
     private final Counter counterProduced;
+    private final Counter counterSent;
+
+    private final Counter counterReceived;
     private final Counter counterProcessed;
+    private final Counter counterCommitted;
+
     private final Counter counterError;
     private final Counter counterMainLoopStarted;
     private final Counter counterMainLoopStopped;
 
     public CounterService(MeterRegistry registry) {
-        this.counterSent = registry.counter("pipeline.sent");
-        this.counterReceived = registry.counter("pipeline.received");
-        this.counterAcknowledged = registry.counter("pipeline.acknowledged");
-        this.counterCommitted = registry.counter("pipeline.committed");
+
         this.counterProduced = registry.counter("pipeline.produced");
+        this.counterSent = registry.counter("pipeline.sent");
+
+        this.counterReceived = registry.counter("pipeline.received");
         this.counterProcessed = registry.counter("pipeline.processed");
+        this.counterCommitted = registry.counter("pipeline.committed");
+
         this.counterError = registry.counter("pipeline.error");
         this.counterMainLoopStarted = registry.counter("pipeline.loop.started");
         this.counterMainLoopStopped = registry.counter("pipeline.loop.stopped");
@@ -52,11 +55,6 @@ public class CounterService {
     public void logRateReceived(int partition, long offset) {
         logRateInternal("RECV", partition, offset);
         counterReceived.increment();
-    }
-
-    public void logRateAcknowledged(int partition, long offset) {
-        logRateInternal("ACKN", partition, offset);
-        counterAcknowledged.increment();
     }
 
     public void logRateCommitted(int partition, long offset) {
@@ -120,8 +118,8 @@ public class CounterService {
         } else {
             if ((now - counterTotal.lastLog) > LOG_PERIOD_MS) {
                 final long totalRate = counterTotal.value * 1000L / (now - counterTotal.start);
-                LOGGER.info("{}/{}: ops={} offset={} total={}",
-                    metric, partition, totalRate, offset, counterTotal.value);
+                LOGGER.info("{}/x: ops={} offset={} total={}",
+                    metric, totalRate, offset, counterTotal.value);
                 counterTotal.lastLog = now;
             }
         }
