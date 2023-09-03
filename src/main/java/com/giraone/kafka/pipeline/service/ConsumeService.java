@@ -45,6 +45,6 @@ public class ConsumeService extends AbstractService {
         } else {
             receiverRecord.receiverOffset().commit().block();
         }
-        counterService.logRateAcknowledged(receiverRecord.partition(), receiverRecord.offset());
+        counterService.logRateCommitted(receiverRecord.partition(), receiverRecord.offset());
     }
 }
