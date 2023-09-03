@@ -5,9 +5,9 @@
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
   </springProfile>
 
-  <springProfile name="setup1">
+  <springProfile name="loki">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <springProperty scope="context" name="appName" source="spring.application.name"/>
+    <springProperty scope="context" name="app" source="spring.application.name"/>
 
     <!-- See https://loki4j.github.io/loki-logback-appender/docs/configuration -->
     <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
@@ -17,10 +17,10 @@
       </http>
       <format>
         <label>
-          <pattern>app=${appName},host=${HOSTNAME},,traceID=%X{traceId:-NONE},level=%level</pattern>
+          <pattern>app=${app},host=${HOSTNAME},,traceID=%X{traceId:-NONE},level=%level</pattern>
         </label>
         <message>
-          <pattern>${FILE_LOG_PATTERN}</pattern>
+          <pattern>%d{ISO8601} %-5level [%50t] %msg%n%throwable</pattern>
         </message>
         <sortByTime>true</sortByTime>
       </format>
@@ -29,15 +29,13 @@
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
       <layout class="ch.qos.logback.classic.PatternLayout">
-        <Pattern>
-          %d{ISO8601} %-5level [%50t] %msg%n%throwable
-        </Pattern>
+        <Pattern>%d{ISO8601} %-5level [%50t] %msg%n%throwable</Pattern>
       </layout>
     </appender>
 
     <root level="INFO">
       <appender-ref ref="LOKI"/>
-      <appender-ref ref="Console"/>
+      <!-- <appender-ref ref="Console"/> -->
     </root>
 
   </springProfile>
