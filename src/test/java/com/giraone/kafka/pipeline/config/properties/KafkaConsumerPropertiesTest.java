@@ -11,9 +11,9 @@ class KafkaConsumerPropertiesTest {
     @ParameterizedTest
     @CsvSource(value = {
         "parallel||Schedulers.parallel()",
-        "newParallel||parallel(4,\"newParallelConsumer\")",
+        "newParallel||parallel(8,\"newParallelConsumer\")",
         "newParallel|2|parallel(2,\"newParallelConsumer\")",
-        "newBoundedElastic||boundedElastic(\"newElasticConsumer\",maxThreads=4,maxTaskQueuedPerThread=256,ttl=60s",
+        "newBoundedElastic||boundedElastic(\"newElasticConsumer\",maxThreads=8,maxTaskQueuedPerThread=256,ttl=60s",
         "newBoundedElastic|2|boundedElastic(\"newElasticConsumer\",maxThreads=2,maxTaskQueuedPerThread=64,ttl=60s",
     }, delimiterString = "|")
     void buildScheduler(String schedulerType, Integer concurrency, String expectedToString) {

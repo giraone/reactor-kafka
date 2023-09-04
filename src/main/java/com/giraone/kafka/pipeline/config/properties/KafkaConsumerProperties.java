@@ -39,9 +39,9 @@ public class KafkaConsumerProperties {
     /**
      * Concurrency (threads or pooled workers) of the scheduler, that is used for consuming events,
      * when the scheduler allows parallel work.
-     * Default is 4.
+     * Default is 8.
      */
-    private int concurrency = 4;
+    private int concurrency = 8;
     /**
      * Flag, whether auto-commit is used - default=false. If true commitInterval/commitBatchSize are used..
      **/

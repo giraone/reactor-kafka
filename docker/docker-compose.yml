@@ -106,7 +106,7 @@ services:
 #      - SPRING_PROFILES_ACTIVE=docker
 #      - APPLICATION_MODE=ProduceSendSource
 #      - APPLICATION_PRODUCE_INTERVAL=100ms
-#      - APPLICATION_TOPIC_A=a4
+#      - APPLICATION_TOPIC_A=a8
 
   pipe:
     image: reactor-kafka
@@ -123,8 +123,8 @@ services:
       - SPRING_APPLICATION_NAME=pipe # the name is shown in the log and used in metrics
       - SPRING_PROFILES_ACTIVE=docker,loki
       - APPLICATION_MODE=PipePartitioned
-      - APPLICATION_TOPIC_A=a4
-      - APPLICATION_TOPIC_B=b4
+      - APPLICATION_TOPIC_A=a8
+      - APPLICATION_TOPIC_B=b8
       - APPLICATION_CONSUMER_GROUP_ID=pipe-docker3
       - APPLICATION_PROCESSING_TIME=0ms
       - APPLICATION_CONSUMER_SCHEDULER_TYPE=newParallel
@@ -149,7 +149,7 @@ services:
 #      - SPRING_PROFILES_ACTIVE=docker
 #      - APPLICATION_MODE=Consume
 #      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
-#      - APPLICATION_TOPIC_B=b4
+#      - APPLICATION_TOPIC_B=b8
 
 networks:
   kafka:

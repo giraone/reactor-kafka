@@ -11,7 +11,7 @@ do
     --partitions 1
 done
 
-for topic in a4 b4
+for topic in a8 b8
 do
   echo "Create $topic"
   docker exec -it kafka-1 kafka-topics \
@@ -19,7 +19,7 @@ do
     --create \
     --topic $topic \
     --replication-factor 1 \
-    --partitions 4
+    --partitions 8
 done
 
 # kafka-configs --alter --topic a1 --add-config "cleanup.policy=compact" --add-config "delete.retention.ms=10000" --bootstrap-server kafka-1:9092
