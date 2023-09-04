@@ -28,7 +28,6 @@ public abstract class AbstractPipeService extends AbstractService {
 
     protected final ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate;
     protected final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
-    protected final Scheduler scheduler;
     protected final String topicInput;
     protected final String topicOutput;
     protected final Duration delay; // How long does the pure processing take?
@@ -42,7 +41,6 @@ public abstract class AbstractPipeService extends AbstractService {
         super(applicationProperties, counterService);
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
         this.reactiveKafkaConsumerTemplate = reactiveKafkaConsumerTemplate;
-        this.scheduler = applicationProperties.getConsumer().buildScheduler();
         this.topicInput = applicationProperties.getTopicA();
         this.topicOutput = applicationProperties.getTopicB();
         this.delay = applicationProperties.getProcessingTime();
@@ -57,6 +55,11 @@ public abstract class AbstractPipeService extends AbstractService {
 
     protected String getTopicOutput() {
         return topicOutput;
+    }
+
+    protected Scheduler buildScheduler() {
+
+        return applicationProperties.getConsumer().buildScheduler();
     }
 
     @Override

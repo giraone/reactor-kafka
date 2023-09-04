@@ -28,7 +28,7 @@ public class PipePartitionedService extends AbstractPipeService {
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
             .flatMap(partitionFlux ->
                 // See https://projectreactor.io/docs/kafka/release/reference/ - chapter 5.12
-                partitionFlux.publishOn(scheduler)
+                partitionFlux.publishOn(buildScheduler())
                     // perform the pipe task - TODO: is flatMap an option?
                     .concatMap(this::process)
                     // send result to target topic

@@ -24,7 +24,7 @@ public class PipeReceiveSendService extends AbstractPipeService {
 
         this.receiveWithRetry()
             // perform processing on another scheduler
-            .publishOn(scheduler)
+            .publishOn(buildScheduler())
             // perform the pipe task
             .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
             // send result to target topic
