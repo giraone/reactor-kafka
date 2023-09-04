@@ -3,6 +3,7 @@ package com.giraone.kafka.pipeline.service;
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.scheduler.Scheduler;
 import reactor.kafka.receiver.ReceiverRecord;
 
 @Service
@@ -25,12 +26,17 @@ public class ConsumeService extends AbstractService {
     public void start() {
 
         reactiveKafkaConsumerTemplate.receive()
-            .log()
+            // perform processing on another scheduler
+            .publishOn(buildScheduler())
             .doOnNext(this::consume)
-            .doOnNext(this::ack)
+            .doOnNext(this::commit)
             .doOnError(e -> counterService.logError("ConsumeService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
         counterService.logMainLoopStarted();
+    }
+
+    protected Scheduler buildScheduler() {
+        return applicationProperties.getConsumer().buildScheduler();
     }
 
     protected void consume(ReceiverRecord<String, String> receiverRecord) {
@@ -38,7 +44,7 @@ public class ConsumeService extends AbstractService {
         counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset());
     }
 
-    protected void ack(ReceiverRecord<String, String> receiverRecord) {
+    protected void commit(ReceiverRecord<String, String> receiverRecord) {
 
         if (applicationProperties.getConsumer().isAutoCommit()) {
             receiverRecord.receiverOffset().acknowledge();

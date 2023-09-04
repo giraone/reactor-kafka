@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import reactor.kafka.sender.SenderRecord;
 
 @Service
-public class ProduceSendSourceService extends AbstractProduceService {
+public class ProduceConcatMapService extends AbstractProduceService {
 
-    public ProduceSendSourceService(
+    public ProduceConcatMapService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate
@@ -22,17 +22,17 @@ public class ProduceSendSourceService extends AbstractProduceService {
     @Override
     public void start() {
 
-        LOGGER.info("STARTING to produce {} events using ProduceSendSourceService.", maxNumberOfEvents);
-        this.send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
-                .map(tuple -> {
-                    final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
-                    return SenderRecord.create(producerRecord, tuple.getT1());
-                })
-            )
+        LOGGER.info("STARTING to produce {} events using ProduceConcatMapService.", maxNumberOfEvents);
+        source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
             // A scheduler is needed - a single or parallel(1) is OK
             .publishOn(schedulerForKafkaProduce)
-            .doOnError(e -> counterService.logError("ProduceService failed!", e))
-            .subscribe(null, counterService::logMainLoopError);
+            .concatMap(tuple -> {
+                final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
+                final SenderRecord<String, String, String> senderRecord = SenderRecord.create(producerRecord, tuple.getT1());
+                return this.send(senderRecord);
+            })
+            .doOnError(e -> counterService.logError("ProduceConcatMapService failed!", e))
+            .subscribe(null, counterService::logMainLoopError, () -> schedulerForKafkaProduce.disposeGracefully().block());
         counterService.logMainLoopStarted();
     }
 }

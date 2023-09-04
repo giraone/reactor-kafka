@@ -1,10 +1,14 @@
 package com.giraone.kafka.pipeline.service;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import org.reactivestreams.Publisher;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -14,7 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractProduceService extends AbstractService {
 
     // One single thread is enough to generate numbers and System.currentTimeMillis() tupels
-    protected static final Scheduler schedulerForProduce = Schedulers.newSingle("producerScheduler", true);
+    protected static final Scheduler schedulerForGenerateNumbers = Schedulers.newSingle("generateNumberScheduler", false);
+    protected static final Scheduler schedulerForKafkaProduce = Schedulers.newSingle("producerScheduler", false);
 
     protected final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
     protected final String topicOutput;
@@ -32,12 +37,41 @@ public abstract class AbstractProduceService extends AbstractService {
     }
 
     protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {
+        return sourceHot(delay, limit);
+    }
+
+    protected Flux<Tuple2<String, String>> sourceHot(Duration delay, int limit) {
+
+        final AtomicInteger counter = new AtomicInteger(0);
+        return Flux.range(0, limit)
+            .delayElements(delay, schedulerForGenerateNumbers)
+            .map(ignored -> counter.getAndIncrement())
+            .map(nr -> Tuples.of(Long.toString(nr), buildContent()))
+            .doOnNext(t -> counterService.logRateProduced());
+    }
+
+    protected Flux<Tuple2<String, String>> sourceCold(Duration delay, int limit) {
 
         final AtomicInteger counter = new AtomicInteger((int) (System.currentTimeMillis() / 1000L));
-        return Flux.interval(delay, schedulerForProduce)
+        return Flux.interval(delay, schedulerForGenerateNumbers)
             .take(limit)
             .map(ignored -> counter.getAndIncrement())
-            .map(nr -> Tuples.of(Long.toString(nr), Long.toString(System.currentTimeMillis())))
+            .map(nr -> Tuples.of(Long.toString(nr), buildContent()))
             .doOnNext(t -> counterService.logRateProduced());
+    }
+
+    protected Mono<SenderResult<String>> send(SenderRecord<String,String,String> senderRecord) {
+
+        return reactiveKafkaProducerTemplate.send(senderRecord)
+            .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()));
+    }
+
+    protected Flux<SenderResult<String>> send(Publisher<? extends SenderRecord<String, String, String>> senderRecords) {
+        return reactiveKafkaProducerTemplate.send(senderRecords)
+            .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()));
+    }
+
+    private String buildContent() {
+        return String.valueOf((char) (65 + System.currentTimeMillis() % 26)).repeat(10);
     }
 }

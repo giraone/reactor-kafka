@@ -1,6 +1,8 @@
 package com.giraone.kafka.pipeline.service;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class PipeReceiveSendService extends AbstractPipeService {
     @Override
     public void start() {
 
-        this.receiveWithRetry()
+        subscription = this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(buildScheduler())
             // perform the pipe task
@@ -36,5 +38,10 @@ public class PipeReceiveSendService extends AbstractPipeService {
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
+    }
+
+    @EventListener
+    public void onApplicationCloseEvent(ContextClosedEvent contextClosedEvent) {
+        super.onApplicationCloseEvent(contextClosedEvent);
     }
 }

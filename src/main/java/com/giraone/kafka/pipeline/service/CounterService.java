@@ -111,14 +111,14 @@ public class CounterService {
                 final long partitionRate = counterForPartition.value * 1000L / (now - counterForPartition.start);
                 final long totalRate = counterTotal.value * 1000L / (now - counterTotal.start);
                 LOGGER.info("{}/{}: ops/p={} ops={} offset={} total/p={} total={}",
-                    metric, partition, partitionRate, totalRate, offset, counterForPartition.value, counterTotal.value);
+                    metric, String.format("%02d", partition), partitionRate, totalRate, offset, counterForPartition.value, counterTotal.value);
                 counterForPartition.lastLog = now;
                 counterTotal.lastLog = now;
             }
         } else {
             if ((now - counterTotal.lastLog) > LOG_PERIOD_MS) {
                 final long totalRate = counterTotal.value * 1000L / (now - counterTotal.start);
-                LOGGER.info("{}/*: ops={} total={}",
+                LOGGER.info("{}/**: ops={} total={}",
                     metric, totalRate, counterTotal.value);
                 counterTotal.lastLog = now;
             }

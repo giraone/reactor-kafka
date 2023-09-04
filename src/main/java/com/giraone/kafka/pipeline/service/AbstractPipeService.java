@@ -5,8 +5,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -33,6 +35,9 @@ public abstract class AbstractPipeService extends AbstractService {
     protected final Duration delay; // How long does the pure processing take?
     protected final Retry retry;
 
+    // used to save the subscription of the main consumer loop, so we can dispose on shutdown, to stop consuming during shutdown
+    protected Disposable subscription;
+
     public AbstractPipeService(ApplicationProperties applicationProperties,
                                CounterService counterService,
                                ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
@@ -58,7 +63,6 @@ public abstract class AbstractPipeService extends AbstractService {
     }
 
     protected Scheduler buildScheduler() {
-
         return applicationProperties.getConsumer().buildScheduler();
     }
 
@@ -70,6 +74,13 @@ public abstract class AbstractPipeService extends AbstractService {
         }
         LOGGER.info("STARTING {}", this.getClass().getSimpleName());
         this.start();
+    }
+
+    protected void onApplicationCloseEvent(ContextClosedEvent ignoredEvent) {
+        LOGGER.info("Got shutdown signal, disposing main consumer loop subscription...");
+        if (subscription != null) {
+            subscription.dispose();
+        }
     }
 
     /**

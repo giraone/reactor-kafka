@@ -80,12 +80,6 @@
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
-    <!-- Direct usage of Grafana LOKI by using its appender for LOGGING -->
-    <dependency>
-      <groupId>com.github.loki4j</groupId>
-      <artifactId>loki-logback-appender</artifactId>
-      <version>${loki-logback-appender.version}</version>
-    </dependency>
 
     <!-- Tooling Dependencies -->
     <dependency>
@@ -300,5 +294,20 @@
 
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- a profile with a directly used log appender for loki -->
+      <id>loki</id>
+      <dependencies>
+        <!-- Direct usage of Grafana LOKI by using its appender for LOGGING -->
+        <dependency>
+          <groupId>com.github.loki4j</groupId>
+          <artifactId>loki-logback-appender</artifactId>
+          <version>${loki-logback-appender.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>

@@ -93,72 +93,32 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 ### Producer
 
-*ProduceSendSource* `producerTemplate.send(source())` is fast - it reaches 250 ops, but it has no automatic support for **backpressure*.
-When creating 1000 events per second locally (`./produce.sh ProduceSendSource a8 1ms 10000`) the producer will end in an
-error `Could not emit tick 256 due to lack of requests (interval doesn't support small downstream requests that replenish slower than the ticks)`
-after the first 256 event are created.
-
-If the Producer produces slower, e.g. with only 200-250 instead of 1000 events per seconds `./produce.sh ProduceSendSource a8 5ms 10000` it works mostly.
-
-```
-2023-09-02T15:04:10.136+02:00  INFO 7740 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=200 offset=-1 total=607
-2023-09-02T15:04:10.558+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops/p=62 ops=229 offset=12816 total/p=188 total=692
-2023-09-02T15:04:10.584+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops/p=53 ops=228 offset=12420 total/p=161 total=697
-2023-09-02T15:04:10.615+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops/p=55 ops=228 offset=12758 total/p=169 total=703
-2023-09-02T15:04:10.618+02:00  INFO 7740 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops/p=58 ops=228 offset=12789 total/p=179 total=704
-```
-
 **TODO:** How can we use backpressure in the ProduceSendSource code?
 
-*ProduceFlatMap* `source().flatMap(e -> producerTemplate.send(e))` can be called with `./produce.sh ProduceFlatMap a8 1ms 10000`.
-It will start creating with 280 ops and slowly reduce the throughput to 65 ops.
+*ProduceConcatMap* `sourceHot().concatMap(e -> producerTemplate.send(e))` reaches 270 ops on a 16 partition topic.
+*ProduceFlatMap* `sourceHot().flatMap(e -> producerTemplate.send(e), 1, 1)` reaches 280 ops on a 16 partition topic.
+*ProduceFlatMap* `sourceHot().flatMap(e -> producerTemplate.send(e))` reaches 1020 ops on a 16 partition topic.
+*ProduceSendSource* `producerTemplate.send(sourceHot())` reaches 300 ops on a 16 partition topic.
 
-```
-2023-09-02T15:02:20.810+02:00  INFO 11532 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=63 offset=-1 total=639
-2023-09-02T15:02:20.937+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/0: ops/p=15 ops=67 offset=12164 total/p=145 total=647
-2023-09-02T15:02:21.685+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/1: ops/p=18 ops=66 offset=12530 total/p=188 total=695
-2023-09-02T15:02:21.809+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/2: ops/p=16 ops=66 offset=12514 total/p=176 total=703
-2023-09-02T15:02:21.822+02:00  INFO 11532 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=63 offset=-1 total=704
-2023-09-02T15:02:21.856+02:00  INFO 11532 --- [ad | producer-1] c.g.k.pipeline.service.CounterService    : SEND/3: ops/p=17 ops=66 offset=12553 total/p=181 total=706
-```
+send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
+.map(tuple -> {
+final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
+return SenderRecord.create(producerRecord, tuple.getT1());
+})
+)
 
 ### Pipe
 
-With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 0ms newParallel`
+| Mode             | Proc-Time |          Partitions | Inst / Conc |       Scheduler | maxPollRec/Int | OPS |
+|:-----------------|----------:|--------------------:|-------------|----------------:|---------------:|----:|
+| PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        16 / 1s | 170 |
+| PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        16 / 5s | 171 |
+| PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        32 / 5s | 135 |
+| PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        64 /20s |  26 |
 
-```
-2023-09-04 01:14:03,428 INFO  [                              parallel-9] TASK/*: ops=39 offset=-1 total=125
-2023-09-04 01:14:03,427 INFO  [                              parallel-7] TASK/*: ops=38 offset=-1 total=124
-2023-09-04 01:14:03,428 INFO  [                              parallel-8] TASK/*: ops=39 offset=-1 total=126
-2023-09-04 01:14:03,428 INFO  [                              parallel-2] TASK/*: ops=39 offset=-1 total=127
-2023-09-04 01:14:03,535 INFO  [       reactive-kafka-pipe-ReceiveSend-1] CMMT/1: ops/p=37 ops=37 offset=1576 total/p=121 total=121
-2023-09-04 01:14:03,541 INFO  [kafka-producer-network-thread | producer-1] SENT/1: ops/p=38 ops=38 offset=1581 total/p=125 total=125
-2023-09-04 01:14:04,509 INFO  [                              parallel-8] TASK/*: ops=38 offset=-1 total=165
-2023-09-04 01:14:04,509 INFO  [                              parallel-9] TASK/*: ops=38 offset=-1 total=166
-2023-09-04 01:14:04,509 INFO  [                              parallel-7] TASK/*: ops=38 offset=-1 total=164
-2023-09-04 01:14:04,510 INFO  [                              parallel-2] TASK/*: ops=39 offset=-1 total=167
-2023-09-04 01:14:04,615 INFO  [       reactive-kafka-pipe-ReceiveSend-1] CMMT/1: ops/p=37 ops=37 offset=1616 total/p=161 total=161
-2023-09-04 01:14:04,619 INFO  [kafka-producer-network-thread | producer-1] SENT/1: ops/p=38 ops=38 offset=1621 total/p=165 total=165
-2023-09-04 01:14:05,166 INFO  [                   newParallelConsumer-1] RECV/1: ops/p=52 ops=52 offset=1710 total/p=257 total=257
-```
+With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 10ms newParallel`
 
-With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 100ms newParallel 4 1s`
 
-```
-2023-09-04 01:11:57,739 INFO  [                              parallel-8] TASK/*: ops=23 offset=-1 total=76
-2023-09-04 01:11:57,739 INFO  [                              parallel-2] TASK/*: ops=23 offset=-1 total=76
-2023-09-04 01:11:57,739 INFO  [                              parallel-7] TASK/*: ops=23 offset=-1 total=76
-2023-09-04 01:11:57,739 INFO  [                              parallel-9] TASK/*: ops=23 offset=-1 total=76
-2023-09-04 01:11:57,850 INFO  [kafka-producer-network-thread | producer-1] SENT/1: ops/p=37 ops=37 offset=637 total/p=121 total=121
-2023-09-04 01:11:57,851 INFO  [kafka-producer-network-thread | producer-1] CMMT/1: ops/p=37 ops=37 offset=637 total/p=121 total=121
-2023-09-04 01:11:58,825 INFO  [                              parallel-9] TASK/*: ops=24 offset=-1 total=105
-2023-09-04 01:11:58,825 INFO  [                              parallel-8] TASK/*: ops=24 offset=-1 total=105
-2023-09-04 01:11:58,825 INFO  [                              parallel-7] TASK/*: ops=24 offset=-1 total=105
-2023-09-04 01:11:58,825 INFO  [                              parallel-2] TASK/*: ops=24 offset=-1 total=105
-2023-09-04 01:11:58,938 INFO  [kafka-producer-network-thread | producer-1] SENT/1: ops/p=37 ops=37 offset=679 total/p=161 total=161
-2023-09-04 01:11:58,939 INFO  [kafka-producer-network-thread | producer-1] CMMT/1: ops/p=37 ops=37 offset=679 total/p=161 total=161
-2023-09-04 01:11:59,588 INFO  [                   newParallelConsumer-1] RECV/1: ops/p=49 ops=49 offset=772 total/p=257 total=257
-```
 
 ## Older Performance Results
 

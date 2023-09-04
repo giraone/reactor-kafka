@@ -1,3 +1,9 @@
+server:
+  # Graceful shutdown feature
+  # By default, the value of this property is equal to immediate, which means the server gets shut down immediately.
+  # see: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown
+  shutdown: graceful
+
 logging:
   level:
     root: WARN

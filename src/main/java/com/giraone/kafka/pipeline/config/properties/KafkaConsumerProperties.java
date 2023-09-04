@@ -33,9 +33,9 @@ public class KafkaConsumerProperties {
     private String groupId = "pipe-default";
     /**
      * Type of scheduler - either "parallel", "newParallel" or "newBoundedElastic".
-     * Default is "newBoundedElastic".
+     * Default is "newParallel".
      */
-    private String schedulerType = "newBoundedElastic";
+    private String schedulerType = "newParallel";
     /**
      * Concurrency (threads or pooled workers) of the scheduler, that is used for consuming events,
      * when the scheduler allows parallel work.
@@ -114,7 +114,7 @@ public class KafkaConsumerProperties {
 
         final Scheduler ret;
         if ("newParallel".equalsIgnoreCase(schedulerType)) {
-            ret = Schedulers.newParallel("newParallelConsumer", concurrency, true);
+            ret = Schedulers.newParallel("newParallelConsumer", concurrency, false);
         } else if ("newBoundedElastic".equalsIgnoreCase(schedulerType)) {
             // number of queued task is 32 * threads
             ret = Schedulers.newBoundedElastic(concurrency, concurrency * 32, "newElasticConsumer");
