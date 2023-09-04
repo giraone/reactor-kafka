@@ -118,8 +118,8 @@ public class CounterService {
         } else {
             if ((now - counterTotal.lastLog) > LOG_PERIOD_MS) {
                 final long totalRate = counterTotal.value * 1000L / (now - counterTotal.start);
-                LOGGER.info("{}/*: ops={} offset={} total={}",
-                    metric, totalRate, offset, counterTotal.value);
+                LOGGER.info("{}/*: ops={} total={}",
+                    metric, totalRate, counterTotal.value);
                 counterTotal.lastLog = now;
             }
         }
