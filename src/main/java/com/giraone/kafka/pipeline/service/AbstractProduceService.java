@@ -2,8 +2,14 @@ package com.giraone.kafka.pipeline.service;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
+import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractProduceService extends AbstractService {
 
@@ -23,5 +29,15 @@ public abstract class AbstractProduceService extends AbstractService {
         this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
         this.maxNumberOfEvents = applicationProperties.getProducerVariables().getMaxNumberOfEvents();
         this.topicOutput = applicationProperties.getTopicA();
+    }
+
+    protected Flux<Tuple2<String, String>> source(Duration delay, int limit) {
+
+        final AtomicInteger counter = new AtomicInteger((int) (System.currentTimeMillis() / 1000L));
+        return Flux.interval(delay, schedulerForProduce)
+            .take(limit)
+            .map(ignored -> counter.getAndIncrement())
+            .map(nr -> Tuples.of(Long.toString(nr), Long.toString(System.currentTimeMillis())))
+            .doOnNext(t -> counterService.logRateProduced());
     }
 }
