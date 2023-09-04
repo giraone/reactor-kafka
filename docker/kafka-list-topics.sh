@@ -11,3 +11,5 @@ cat _topics | grep -v __ | while read topic; do
       --bootstrap-server ${1:-kafka-1}:${2:-9092} \
       --describe --topic $topic
 done
+
+rm _topics
