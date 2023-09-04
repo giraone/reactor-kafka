@@ -28,3 +28,5 @@ spring:
 application:
   topic-a: 'atest'
   topic-b: 'btest'
+  producer-variables:
+    max-number-of-events: 10
