@@ -58,6 +58,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${CONTAINER_DATA:-./data}/prometheus:/prometheus:rw \
     ports:
       - "9090:9090"
 
@@ -68,6 +69,8 @@ services:
     command: [ "-config.file=/etc/loki/local-config.yaml" ]
     networks:
       - kafka
+    volumes:
+      - ${CONTAINER_DATA:-./data}/loki:/loki:rw
     ports:
       - "3100:3100" # log ingest
 
@@ -83,6 +86,7 @@ services:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:rw
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:rw
+      - ${CONTAINER_DATA:-./data}/grafana:/var/lib/grafana:rw
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
