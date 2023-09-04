@@ -35,6 +35,8 @@ public class ProduceSendSourceService extends AbstractProduceService {
                     return SenderRecord.create(producerRecord, tuple.getT1());
                 })
             )
+            // A scheduler is needed - a single or parallel(1) is OK
+            .publishOn(schedulerForProduce)
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> counterService.logError("ProduceService failed!", e))
             .subscribe(null, counterService::logMainLoopError);

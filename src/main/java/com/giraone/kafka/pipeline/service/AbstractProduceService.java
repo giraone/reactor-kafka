@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractProduceService extends AbstractService {
 
     // One single thread is enough to generate numbers and System.currentTimeMillis() tupels
-    protected static final Scheduler schedulerForProduce = Schedulers.newParallel("generate", 1, true);
+    protected static final Scheduler schedulerForProduce = Schedulers.newSingle("producerScheduler", true);
 
     protected final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
     protected final String topicOutput;
