@@ -23,14 +23,18 @@ public class ProduceTransactionalService extends AbstractProduceService {
     public void start() {
 
         LOGGER.info("STARTING to produce {} events using ProduceTransactionalService.", maxNumberOfEvents);
+        final long start = System.currentTimeMillis();
         source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
             .flatMap(tuple -> {
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
                 return reactiveKafkaProducerTemplate.sendTransactionally(SenderRecord.create(producerRecord, tuple.getT1()));
             })
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
-            .doOnError(e -> LOGGER.error("Send failed", e))
-            .subscribe();
+            .doOnError(e -> counterService.logError("ProduceService failed!", e))
+            .subscribe(null, counterService::logMainLoopError, () -> {
+                LOGGER.info("Finished producing {} events after {} seconds", maxNumberOfEvents, (System.currentTimeMillis() - start) / 1000L);
+                schedulerForKafkaProduce.disposeGracefully().block();
+            });
         counterService.logMainLoopStarted();
     }
 }

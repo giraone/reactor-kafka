@@ -23,6 +23,7 @@ public class ProduceSendSourceService extends AbstractProduceService {
     public void start() {
 
         LOGGER.info("STARTING to produce {} events using ProduceSendSourceService.", maxNumberOfEvents);
+        final long start = System.currentTimeMillis();
         this.send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
                 .map(tuple -> {
                     final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
@@ -32,7 +33,10 @@ public class ProduceSendSourceService extends AbstractProduceService {
             // A scheduler is needed - a single or parallel(1) is OK
             .publishOn(schedulerForKafkaProduce)
             .doOnError(e -> counterService.logError("ProduceService failed!", e))
-            .subscribe(null, counterService::logMainLoopError);
+            .subscribe(null, counterService::logMainLoopError, () -> {
+                LOGGER.info("Finished producing {} events after {} seconds", maxNumberOfEvents, (System.currentTimeMillis() - start) / 1000L);
+                schedulerForKafkaProduce.disposeGracefully().block();
+            });
         counterService.logMainLoopStarted();
     }
 }

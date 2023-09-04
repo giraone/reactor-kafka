@@ -23,6 +23,7 @@ public class ProduceConcatMapService extends AbstractProduceService {
     public void start() {
 
         LOGGER.info("STARTING to produce {} events using ProduceConcatMapService.", maxNumberOfEvents);
+        final long start = System.currentTimeMillis();
         source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
             // A scheduler is needed - a single or parallel(1) is OK
             .publishOn(schedulerForKafkaProduce)
@@ -32,7 +33,10 @@ public class ProduceConcatMapService extends AbstractProduceService {
                 return this.send(senderRecord);
             })
             .doOnError(e -> counterService.logError("ProduceConcatMapService failed!", e))
-            .subscribe(null, counterService::logMainLoopError, () -> schedulerForKafkaProduce.disposeGracefully().block());
+            .subscribe(null, counterService::logMainLoopError, () -> {
+                LOGGER.info("Finished producing {} events after {} seconds", maxNumberOfEvents, (System.currentTimeMillis() - start) / 1000L);
+                schedulerForKafkaProduce.disposeGracefully().block();
+            });
         counterService.logMainLoopStarted();
     }
 }
