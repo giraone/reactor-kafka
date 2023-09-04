@@ -94,11 +94,11 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 ### Producer
 
 *ProduceSendSource* `producerTemplate.send(source())` is fast - it reaches 250 ops, but it has no automatic support for **backpressure*.
-When creating 1000 events per second locally (`./produce.sh ProduceSendSource a4 1ms 10000`) the producer will end in an
+When creating 1000 events per second locally (`./produce.sh ProduceSendSource a8 1ms 10000`) the producer will end in an
 error `Could not emit tick 256 due to lack of requests (interval doesn't support small downstream requests that replenish slower than the ticks)`
 after the first 256 event are created.
 
-If the Producer produces slower, e.g. with only 200-250 instead of 1000 events per seconds `./produce.sh ProduceSendSource a4 5ms 10000` it works mostly.
+If the Producer produces slower, e.g. with only 200-250 instead of 1000 events per seconds `./produce.sh ProduceSendSource a8 5ms 10000` it works mostly.
 
 ```
 2023-09-02T15:04:10.136+02:00  INFO 7740 --- [     generate-1] c.g.k.pipeline.service.CounterService    : PROD/-1: ops=200 offset=-1 total=607
@@ -110,7 +110,7 @@ If the Producer produces slower, e.g. with only 200-250 instead of 1000 events p
 
 **TODO:** How can we use backpressure in the ProduceSendSource code?
 
-*ProduceFlatMap* `source().flatMap(e -> producerTemplate.send(e))` can be called with `./produce.sh ProduceFlatMap a4 1ms 10000`.
+*ProduceFlatMap* `source().flatMap(e -> producerTemplate.send(e))` can be called with `./produce.sh ProduceFlatMap a8 1ms 10000`.
 It will start creating with 280 ops and slowly reduce the throughput to 65 ops.
 
 ```
@@ -124,7 +124,7 @@ It will start creating with 280 ops and slowly reduce the throughput to 65 ops.
 
 ### Pipe
 
-With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 0ms newParallel`
+With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 0ms newParallel`
 
 ```
 2023-09-04 01:14:03,428 INFO  [                              parallel-9] TASK/*: ops=39 offset=-1 total=125
@@ -142,7 +142,7 @@ With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-
 2023-09-04 01:14:05,166 INFO  [                   newParallelConsumer-1] RECV/1: ops/p=52 ops=52 offset=1710 total/p=257 total=257
 ```
 
-With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a4 b4 pipe-ReceiveSend 100ms newParallel 4 1s`
+With *manual commit* and slow processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 100ms newParallel 4 1s`
 
 ```
 2023-09-04 01:11:57,739 INFO  [                              parallel-8] TASK/*: ops=23 offset=-1 total=76
