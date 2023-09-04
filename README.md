@@ -93,32 +93,29 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 ### Producer
 
-**TODO:** How can we use backpressure in the ProduceSendSource code?
+**Cloud Foundry with central Kafka cluster**
 
 *ProduceConcatMap* `sourceHot().concatMap(e -> producerTemplate.send(e))` reaches 270 ops on a 16 partition topic.
 *ProduceFlatMap* `sourceHot().flatMap(e -> producerTemplate.send(e), 1, 1)` reaches 280 ops on a 16 partition topic.
 *ProduceFlatMap* `sourceHot().flatMap(e -> producerTemplate.send(e))` reaches 1020 ops on a 16 partition topic.
 *ProduceSendSource* `producerTemplate.send(sourceHot())` reaches 300 ops on a 16 partition topic.
 
-send(source(applicationProperties.getProduceInterval(), maxNumberOfEvents)
-.map(tuple -> {
-final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
-return SenderRecord.create(producerRecord, tuple.getT1());
-})
-)
+**Local Docker single broker**
+
+| Mode              | Prod-Interval | Partitions |  Plaform / Inst / Conc |  numberOfEvents |  totalSec | OPS |
+|:------------------|--------------:|-----------:|-----------------------:|----------------:|----------:|----:|
+| ProduceFlatMap    |         1 ms  |          8 | Docker (local) / 1 / 8 |           10000 |       155 |  64 |
+| ProduceConcatMap  |         1 ms  |          8 | Docker (local) / 1 / 8 |           10000 |       155 |  64 |
+| ProduceSendSource |         1 ms  |          8 | Docker (local) / 1 / 8 |           10000 |       155 |  64 |
 
 ### Pipe
 
 | Mode             | Proc-Time |          Partitions | Inst / Conc |       Scheduler | maxPollRec/Int | OPS |
-|:-----------------|----------:|--------------------:|-------------|----------------:|---------------:|----:|
+|:-----------------|----------:|--------------------:|------------:|----------------:|---------------:|----:|
 | PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        16 / 1s | 170 |
 | PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        16 / 5s | 171 |
 | PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        32 / 5s | 135 |
 | PipeReceiveSend  |     10 ms |                  16 |      1 / 16 |     newParallel |        64 /20s |  26 |
-
-With *manual commit* and fast processing: `./pipe.sh PipeReceiveSend a8 b8 pipe-ReceiveSend 10ms newParallel`
-
-
 
 ## Older Performance Results
 
