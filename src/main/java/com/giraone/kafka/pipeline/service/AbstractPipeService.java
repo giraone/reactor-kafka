@@ -5,13 +5,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.kafka.receiver.ReceiverOffset;
 import reactor.kafka.receiver.ReceiverRecord;
 import reactor.kafka.sender.SenderRecord;
@@ -20,13 +17,10 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractPipeService extends AbstractService {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractPipeService.class);
-
-    protected final AtomicInteger starts = new AtomicInteger();
 
     protected final ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate;
     protected final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
@@ -34,9 +28,6 @@ public abstract class AbstractPipeService extends AbstractService {
     protected final String topicOutput;
     protected final Duration delay; // How long does the pure processing take?
     protected final Retry retry;
-
-    // used to save the subscription of the main consumer loop, so we can dispose on shutdown, to stop consuming during shutdown
-    protected Disposable subscription;
 
     public AbstractPipeService(ApplicationProperties applicationProperties,
                                CounterService counterService,
@@ -62,10 +53,6 @@ public abstract class AbstractPipeService extends AbstractService {
         return topicOutput;
     }
 
-    protected Scheduler buildScheduler() {
-        return applicationProperties.getConsumer().buildScheduler();
-    }
-
     @Override
     public void run(String... args) {
 
@@ -74,13 +61,6 @@ public abstract class AbstractPipeService extends AbstractService {
         }
         LOGGER.info("STARTING {}", this.getClass().getSimpleName());
         this.start();
-    }
-
-    protected void onApplicationCloseEvent(ContextClosedEvent ignoredEvent) {
-        LOGGER.info("Got shutdown signal, disposing main consumer loop subscription...");
-        if (subscription != null) {
-            subscription.dispose();
-        }
     }
 
     /**
@@ -113,18 +93,6 @@ public abstract class AbstractPipeService extends AbstractService {
         return input.toUpperCase(Locale.ROOT);
     }
 
-    protected void restartMainLoopOnError(Throwable throwable) {
-        counterService.logMainLoopError(throwable);
-        // We do not re-subscribe endlessly - hard limit to 10 re-subscribes
-        if (starts.get() < 10) {
-            Mono.delay(Duration.ofSeconds(60L))
-                .doOnNext(i -> start())
-                .subscribe();
-        } else {
-            LOGGER.error("Gave up restarting, because of more than 10 restarts of main kafka consuming chain");
-        }
-    }
-
     protected Flux<ReceiverRecord<String, String>> receiveWithRetry() {
         return reactiveKafkaConsumerTemplate.receive()
             .retryWhen(applicationProperties.getConsumer().getRetrySpecification().toRetry())
@@ -141,6 +109,14 @@ public abstract class AbstractPipeService extends AbstractService {
             .doOnNext(this::logSent);
     }
 
+    protected Mono<Void> commit(SenderResult<ReceiverOffset> senderResult) {
+
+        final int partition = senderResult.correlationMetadata().topicPartition().partition();
+        final long offset = senderResult.correlationMetadata().offset();
+        counterService.logRateCommitted(partition, offset);
+        return senderResult.correlationMetadata().commit();
+    }
+
     // No more used - too many differences in reactive flow
     /*
     protected void ackOrCommit(SenderResult<ReceiverOffset> senderResult) {
@@ -152,19 +128,6 @@ public abstract class AbstractPipeService extends AbstractService {
         }
     }
     */
-
-    protected Mono<Void> commit(SenderResult<ReceiverOffset> senderResult) {
-
-        final int partition = senderResult.correlationMetadata().topicPartition().partition();
-        final long offset = senderResult.correlationMetadata().offset();
-        counterService.logRateCommitted(partition, offset);
-        return senderResult.correlationMetadata().commit();
-    }
-
-    private void logReceived(ReceiverRecord<String,String> receiverRecord) {
-
-        counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset());
-    }
 
     private void logSent(SenderResult<ReceiverOffset> senderResult) {
 
