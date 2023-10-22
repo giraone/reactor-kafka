@@ -52,8 +52,8 @@ public abstract class AbstractKafkaIntTest {
     private static final int DEFAULT_TEST_TIMEOUT_MS = 60_000;
 
     protected static final KafkaContainer KAFKA = new KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.3.0"))
-        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.3.0")
+        DockerImageName.parse("confluentinc/cp-kafka:7.4.1"))
+        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.4.1")
         //    .asCompatibleSubstituteFor("confluentinc/cp-kafka"))
         .withNetwork(null)
         .withEnv("KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", "1")
