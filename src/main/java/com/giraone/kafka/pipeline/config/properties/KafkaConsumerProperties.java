@@ -69,10 +69,10 @@ public class KafkaConsumerProperties {
     private int maxPollRecords = 500; // Kafka default = 500
     /**
      * The maximum delay between invocations of poll() in seconds when using consumer group management.
-     * Kafka default = 30 seconds.
+     * Kafka default = 300000 milliseconds = 5 minutes.
      * This places an upper bound on the amount of time that the consumer can be idle before fetching more records.
      */
-    private Duration maxPollInterval = Duration.ofSeconds(30); // Kafka default = 30
+    private Duration maxPollInterval = Duration.ofMinutes(5L); // Kafka default = 300000 (= 5 minutes)
     /**
      * The maximum amount of data the server should return for a fetch request.
      * Kafka default = 50MByte.
