@@ -34,7 +34,8 @@ public class ProduceConcatMapService extends AbstractProduceService {
             })
             .doOnError(e -> counterService.logError("ProduceConcatMapService failed!", e))
             .subscribe(null, counterService::logMainLoopError, () -> {
-                LOGGER.info("Finished producing {} events after {} seconds", maxNumberOfEvents, (System.currentTimeMillis() - start) / 1000L);
+                LOGGER.info("Finished producing {} events to {} after {} seconds", maxNumberOfEvents, topicOutput,
+                    (System.currentTimeMillis() - start) / 1000L);
                 schedulerForKafkaProduce.disposeGracefully().block();
             });
         counterService.logMainLoopStarted();

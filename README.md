@@ -88,6 +88,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 - ShutdownHooks => dispose the subscription
 - receive vs. receiveAutoAck
+- Producer test are disabled because flaky
 
 ## Lessons learned
 
@@ -100,7 +101,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 *ProduceFlatMap* `sourceHot().flatMap(e -> producerTemplate.send(e))` reaches 1020 ops on a 16 partition topic.
 *ProduceSendSource* `producerTemplate.send(sourceHot())` reaches 300 ops on a 16 partition topic.
 
-**Local Docker single broker**
+**Local Docker with Single Kafka Broker**
 
 | Mode              | Prod-Interval | Partitions |  Plaform / Inst / Conc |  numberOfEvents |  totalSec | OPS |
 |:------------------|--------------:|-----------:|-----------------------:|----------------:|----------:|----:|

@@ -60,7 +60,7 @@ public abstract class AbstractProduceService extends AbstractService {
             .doOnNext(t -> counterService.logRateProduced());
     }
 
-    protected Mono<SenderResult<String>> send(SenderRecord<String,String,String> senderRecord) {
+    protected Mono<SenderResult<String>> send(SenderRecord<String, String, String> senderRecord) {
 
         return reactiveKafkaProducerTemplate.send(senderRecord)
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()));

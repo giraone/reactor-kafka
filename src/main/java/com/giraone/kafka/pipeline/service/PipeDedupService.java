@@ -15,11 +15,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Service
-public class DedupService extends AbstractPipeService {
+public class PipeDedupService extends AbstractPipeService {
 
     private final Set<String> lastRecords = new HashSet<>();
 
-    public DedupService(
+    public PipeDedupService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
@@ -37,26 +37,24 @@ public class DedupService extends AbstractPipeService {
             // perform processing on another scheduler
             .publishOn(buildScheduler())
             .doOnNext(this::logReceived)
-            // check for duplicates and commit in any case
+            // perform the pipe task: check for duplicates, send non-duplicates and commit in any case
             .flatMap(this::check, applicationProperties.getConsumer().getConcurrency(), 1)
             // log any error
-            .doOnError(e -> counterService.logError("DedupService failed!", e))
+            .doOnError(e -> counterService.logError("PipeDedupService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
     }
 
-    /**
-     * The pipeline task, that may take some time (defined by APPLICATION_PROCESSING_TIME) for processing an input.
-     */
     protected Mono<ReceiverRecord<String, String>> check(ReceiverRecord<String, String> inputRecord) {
 
         final String key = inputRecord.key();
         if (lastRecords.contains(key)) {
+            counterService.logRateDuplicates(inputRecord.partition(), inputRecord.offset());
             return commit(inputRecord);
         } else {
             lastRecords.add(key);
-            // send result to target topic
+            // send unique result to target topic
             return send(SenderRecord.create(new ProducerRecord<>(getTopicOutput(), key, inputRecord.value()), inputRecord.receiverOffset()))
                 .map(senderResult -> inputRecord)
                 .flatMap(this::commit);

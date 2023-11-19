@@ -17,6 +17,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.KafkaContainer;
@@ -24,6 +25,7 @@ import org.testcontainers.utility.DockerImageName;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.receiver.internals.ConsumerFactory;
 import reactor.kafka.sender.SenderOptions;
+import reactor.util.function.Tuple2;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -171,27 +174,6 @@ public abstract class AbstractKafkaIntTest {
         }
     }
 
-    private void waitForTopic(String topic) {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(props)) {
-            int maxRetries = 10;
-            boolean done = false;
-            for (int i = 0; i < maxRetries && !done; i++) {
-                List<PartitionInfo> partitionInfo = producer.partitionsFor(topic);
-                done = !partitionInfo.isEmpty();
-                for (PartitionInfo info : partitionInfo) {
-                    if (info.leader() == null || info.leader().id() < 0)
-                        done = false;
-                }
-            }
-            assertTrue("Timed out waiting for topic", done);
-        }
-    }
-
     protected void onReceive(ConsumerRecord<String, String> record) {
         receivedMessages.get(record.partition()).add(record.key());
         receivedRecords.get(record.partition()).add(record);
@@ -199,7 +181,9 @@ public abstract class AbstractKafkaIntTest {
 
     protected void waitForMessages(Consumer<String, String> consumer, Integer expectedCount) {
 
-        LOGGER.debug("Wait for {} message(s) in \"{}\".", expectedCount, consumer.listTopics());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Wait for {} message(s) in \"{}\".", expectedCount, consumer.assignment());
+        }
         int readAsMany = expectedCount != null ? expectedCount : 1_000;
         int receivedCount = 0;
         long endTimeMillis = System.currentTimeMillis() + receiveTimeoutMillis;
@@ -242,6 +226,71 @@ public abstract class AbstractKafkaIntTest {
             LOGGER.info("STARTING Kafka broker");
             KAFKA.start();
             LOGGER.info("STARTED Kafka broker {}", KAFKA.getBootstrapServers());
+        }
+    }
+
+    protected void send(String topic, Tuple2<String, String> message) {
+        try (ReactiveKafkaProducerTemplate<String, String> template = new ReactiveKafkaProducerTemplate<>(senderOptions)) {
+            template.send(topic, message.getT1(), message.getT2())
+                .doOnSuccess(senderResult -> LOGGER.info("Sent message with key={} to topic {} with offset : {}",
+                    message.getT1(), topic, senderResult.recordMetadata().offset()))
+                .block();
+        }
+    }
+
+    protected void sendMessagesAndAssertReceived(String topic, Consumer<String, String> consumer,
+                                                 List<Tuple2<String, String>> messagesToSend,
+                                                 List<Tuple2<String, String>> expectedMessages) throws Exception {
+
+        for (Tuple2<String, String> message : messagesToSend) {
+            try (ReactiveKafkaProducerTemplate<String, String> template = new ReactiveKafkaProducerTemplate<>(senderOptions)) {
+                template.send(topic, message.getT1(), message.getT2())
+                    .doOnSuccess(senderResult -> LOGGER.info("Sent message with key={} to topic {} with offset : {}",
+                        message.getT1(), topic, senderResult.recordMetadata().offset()))
+                    .block();
+            }
+        }
+        // We have to wait some time. We use at least the producer request timeout.
+        Thread.sleep(requestTimeoutMillis);
+
+        assertReceived(consumer, expectedMessages);
+    }
+
+    protected void assertReceived(Consumer<String, String> consumer,
+                                  List<Tuple2<String, String>> expectedMessages) {
+
+        waitForMessages(consumer, expectedMessages.size());
+        final AtomicInteger i = new AtomicInteger();
+        receivedRecords.forEach(l -> l.forEach(record -> {
+            LOGGER.info(record.key() + " -> " + record.value());
+            String expectedKey = expectedMessages.get(i.get()).getT1();
+            String expectedBody = expectedMessages.get(i.getAndIncrement()).getT2();
+            assertThat(record.key()).isEqualTo(expectedKey);
+            assertThat(record.value()).isEqualTo(expectedBody);
+        }));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+
+    private void waitForTopic(String topic) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(props)) {
+            int maxRetries = 10;
+            boolean done = false;
+            for (int i = 0; i < maxRetries && !done; i++) {
+                List<PartitionInfo> partitionInfo = producer.partitionsFor(topic);
+                done = !partitionInfo.isEmpty();
+                for (PartitionInfo info : partitionInfo) {
+                    if (info.leader() == null || info.leader().id() < 0)
+                        done = false;
+                }
+            }
+            assertTrue("Timed out waiting for topic", done);
         }
     }
 }

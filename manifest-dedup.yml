@@ -1,0 +1,30 @@
+---
+applications:
+  - name: perf-pipe
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: "{ jre: { version: 17.+ }, memory_calculator: { stack_threads: 25 } }"
+      JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{ enabled: false }'
+      LOGGING_LEVEL_ROOT: 'WARN'
+      LOGGING_LEVEL_COM_GIRAONE: 'INFO'
+      LOGGING_LEVEL_REACTOR_CORE: 'INFO'
+      SPRING_PROFILES_ACTIVE: 'cloud'
+      SPRING_APPLICATION_NAME: 'dedup'
+      APPLICATION_CONSUMER_GROUP_ID: 'dedup-default1'
+      APPLICATION_MODE: 'PipeDedup'
+      APPLICATION_PROCESSING_TIME: '10ms'
+      APPLICATION_CONSUMER_CONCURRENCY: '16'
+      APPLICATION_CONSUMER_SCHEDULER_TYPE: 'newParallel'
+      APPLICATION_CONSUMER_MAX_POLL_RECORDS: '16'
+      APPLICATION_CONSUMER_MAX_POLL_INTERVAL: '300s'
+    instances: 1
+    memory: 1024M
+    disk_quota: 1024M
+    buildpacks:
+      - java_buildpack_offline
+    path: target/reactor-kafka.jar
+    default-route: false
+    services:
+      - system-environment-secure
+      - route-dedup
+      - topic-perf-1
+      - topic-perf-2

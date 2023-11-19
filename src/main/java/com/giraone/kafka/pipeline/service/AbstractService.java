@@ -74,7 +74,7 @@ public abstract class AbstractService implements CommandLineRunner {
         }
     }
 
-    protected void logReceived(ReceiverRecord<String,String> receiverRecord) {
+    protected void logReceived(ReceiverRecord<String, String> receiverRecord) {
         counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset());
     }
 }

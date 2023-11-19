@@ -32,7 +32,8 @@ public class ProduceTransactionalService extends AbstractProduceService {
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()))
             .doOnError(e -> counterService.logError("ProduceService failed!", e))
             .subscribe(null, counterService::logMainLoopError, () -> {
-                LOGGER.info("Finished producing {} events after {} seconds", maxNumberOfEvents, (System.currentTimeMillis() - start) / 1000L);
+                LOGGER.info("Finished producing {} events to {} after {} seconds", maxNumberOfEvents, topicOutput,
+                    (System.currentTimeMillis() - start) / 1000L);
                 schedulerForKafkaProduce.disposeGracefully().block();
             });
         counterService.logMainLoopStarted();

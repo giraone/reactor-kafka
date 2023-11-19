@@ -28,6 +28,7 @@ public class CounterService {
     private final Counter counterReceived;
     private final Counter counterProcessed;
     private final Counter counterCommitted;
+    private final Counter counterDuplicates;
 
     private final Counter counterError;
     private final Counter counterMainLoopStarted;
@@ -41,6 +42,7 @@ public class CounterService {
         this.counterReceived = registry.counter("pipeline.received");
         this.counterProcessed = registry.counter("pipeline.processed");
         this.counterCommitted = registry.counter("pipeline.committed");
+        this.counterDuplicates = registry.counter("pipeline.duplicates");
 
         this.counterError = registry.counter("pipeline.error");
         this.counterMainLoopStarted = registry.counter("pipeline.loop.started");
@@ -72,6 +74,11 @@ public class CounterService {
         counterProcessed.increment();
     }
 
+    public void logRateDuplicates(int partition, long offset) {
+        logRateInternal("DUPS", partition, offset);
+        counterDuplicates.increment();
+    }
+
     public void logError(String errorMessage, Throwable throwable) {
         LOGGER.error("ERROR! {} ", errorMessage, throwable);
         counterError.increment();
@@ -85,6 +92,22 @@ public class CounterService {
     public void logMainLoopError(Throwable throwable) {
         LOGGER.error("Main loop error! ", throwable);
         counterMainLoopStopped.increment();
+    }
+
+    long getCounterProduced() {
+        return (long) this.counterProduced.count();
+    }
+
+    long getCounterSent() {
+        return (long) this.counterSent.count();
+    }
+
+    long getCounterReceived() {
+        return (long) this.counterReceived.count();
+    }
+
+    long getCounterDuplicates() {
+        return (long) this.counterDuplicates.count();
     }
 
     private void logRateInternal(String metric, int partition, long offset) {

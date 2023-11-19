@@ -1,0 +1,25 @@
+---
+applications:
+  - name: perf-produce
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: "{ jre: { version: 17.+ } }"
+      JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{ enabled: false }'
+      LOGGING_LEVEL_ROOT: 'WARN'
+      LOGGING_LEVEL_COM_GIRAONE: 'INFO'
+      LOGGING_LEVEL_REACTOR_CORE: 'INFO'
+      SPRING_PROFILES_ACTIVE: 'cloud'
+      SPRING_APPLICATION_NAME: 'produce'
+      APPLICATION_MODE: 'ProduceFlatMap'
+      APPLICATION_PRODUCE_INTERVAL: '1ms'
+      APPLICATION_PRODUCER_VARIABLES_MAX_NUMBER_OF_EVENTS: '10000'
+    instances: 1
+    memory: 1024M
+    disk_quota: 1024M
+    buildpacks:
+      - java_buildpack_offline
+    path: target/reactor-kafka.jar
+    default-route: false
+    services:
+      - system-environment-secure
+      - route-produce
+      - topic-perf-1
