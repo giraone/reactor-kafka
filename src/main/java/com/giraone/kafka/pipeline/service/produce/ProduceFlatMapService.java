@@ -1,6 +1,7 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.produce;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class ProduceFlatMapService extends AbstractProduceService {
             .subscribe(null, counterService::logMainLoopError, () -> {
                 LOGGER.info("Finished producing {} events to {} after {} seconds", maxNumberOfEvents, topicOutput,
                     (System.currentTimeMillis() - start) / 1000L);
-                schedulerForKafkaProduce.disposeGracefully().block();
+                disposeGracefully();
             });
         counterService.logMainLoopStarted();
     }

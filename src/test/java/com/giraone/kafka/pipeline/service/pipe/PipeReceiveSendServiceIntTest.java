@@ -1,4 +1,4 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

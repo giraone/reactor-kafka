@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.StringUtils;
 
 import java.lang.management.ManagementFactory;
@@ -17,6 +18,7 @@ import java.nio.charset.Charset;
 
 @SpringBootApplication
 @EnableConfigurationProperties({ApplicationProperties.class})
+@EnableTransactionManagement
 public class KafkaPipelineApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaPipelineApplication.class);

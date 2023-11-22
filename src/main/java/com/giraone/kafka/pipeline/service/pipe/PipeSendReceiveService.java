@@ -1,16 +1,15 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PipeReceiveSendService extends AbstractPipeService {
+public class PipeSendReceiveService extends AbstractPipeService {
 
-    public PipeReceiveSendService(
+    public PipeSendReceiveService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
@@ -24,24 +23,22 @@ public class PipeReceiveSendService extends AbstractPipeService {
     @Override
     public void start() {
 
-        subscription = this.receiveWithRetry()
-            // perform processing on another scheduler
-            .publishOn(buildScheduler())
-            // perform the pipe task
-            .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
-            // send result to target topic
-            .flatMap(this::send)
+        reactiveKafkaProducerTemplate
+            .send(
+                reactiveKafkaConsumerTemplate.receive()
+                    // this is the Kafka consume retry
+                    .retryWhen(retry)
+                    // log the received event
+                    .doOnNext(receiverRecord -> counterService.logRateReceived(receiverRecord.partition(), receiverRecord.offset()))
+                    // perform the pipe task
+                    .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
+            )
             // commit every processed record
             .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
             // log any error
-            .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
+            .doOnError(e -> counterService.logError("PipeSendReceiveService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
-    }
-
-    @EventListener
-    public void onApplicationCloseEvent(ContextClosedEvent contextClosedEvent) {
-        super.onApplicationCloseEvent(contextClosedEvent);
     }
 }

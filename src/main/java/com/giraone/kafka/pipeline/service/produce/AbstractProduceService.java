@@ -1,6 +1,8 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.produce;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import com.giraone.kafka.pipeline.service.AbstractService;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.reactivestreams.Publisher;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import reactor.core.publisher.Flux;
@@ -13,6 +15,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.time.Duration;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractProduceService extends AbstractService {
@@ -42,7 +45,7 @@ public abstract class AbstractProduceService extends AbstractService {
 
     protected Flux<Tuple2<String, String>> sourceHot(Duration delay, int limit) {
 
-        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger((int) (System.currentTimeMillis() / 1000L));
         return Flux.range(0, limit)
             .delayElements(delay, schedulerForGenerateNumbers)
             .map(ignored -> counter.getAndIncrement())
@@ -60,6 +63,23 @@ public abstract class AbstractProduceService extends AbstractService {
             .doOnNext(t -> counterService.logRateProduced());
     }
 
+    protected Flux<Tuple2<String, String>> sourceHotWithDuplicates(Duration delay, int limit) {
+        final Random random = new Random();
+        final AtomicInteger counter = new AtomicInteger((int) (System.currentTimeMillis() / 1000L));
+        return Flux.range(0, limit)
+            .delayElements(delay, schedulerForGenerateNumbers)
+            .map(ignored -> {
+                if (random.nextInt(100) == 0) {
+                    LOGGER.info("Duplicate key {} produced", counter.get());
+                    return counter.get();
+                } else {
+                    return counter.getAndIncrement();
+                }
+            })
+            .map(nr -> Tuples.of(Long.toString(nr), buildContent()))
+            .doOnNext(t -> counterService.logRateProduced());
+    }
+
     protected Mono<SenderResult<String>> send(SenderRecord<String, String, String> senderRecord) {
 
         return reactiveKafkaProducerTemplate.send(senderRecord)
@@ -69,6 +89,11 @@ public abstract class AbstractProduceService extends AbstractService {
     protected Flux<SenderResult<String>> send(Publisher<? extends SenderRecord<String, String, String>> senderRecords) {
         return reactiveKafkaProducerTemplate.send(senderRecords)
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()));
+    }
+
+    protected void disposeGracefully() {
+        // TODO: leads to problems in tests
+        schedulerForKafkaProduce.disposeGracefully().timeout(Duration.ofSeconds(5L)).subscribe(unused -> schedulerForKafkaProduce.dispose());
     }
 
     private String buildContent() {

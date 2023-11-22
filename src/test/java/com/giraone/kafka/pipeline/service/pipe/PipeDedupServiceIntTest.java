@@ -1,6 +1,8 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import com.giraone.kafka.pipeline.service.AbstractKafkaIntTest;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

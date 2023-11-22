@@ -17,9 +17,10 @@ The application code contains all modes (environment variable `APPLICATION_MODE`
   2. Pipe with `receive().flatMap(r -> send(transform(r))` (PipeReceiveSend)
   3. Pipe with `receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())` (PipePartitioned)
   4. Pipe with *exactly-once delivery* (PipeExactlyOnce)
+  5. Pipe that performs *De-Duplication*
 - Consumer (Kafka source, logger sink)
 
-Solution Pipe 2 and Pipe 3 do not start, when there are older events in topic, but no new events arrive!!!
+Solution Pipe 2 and Pipe 3 do not start, when there are older events in the input topic, but no new events arrive!!!
 
 ## Setup
 
@@ -69,7 +70,7 @@ There are 8 containers
 
 ## Testing
 
-- For integration testing Kafka Testcontainers is used.
+- For integration testing *Kafka Testcontainers* are used.
 
 ## Design decision
 
@@ -88,7 +89,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 - ShutdownHooks => dispose the subscription
 - receive vs. receiveAutoAck
-- Producer test are disabled because flaky
+- Producer test are disabled because they are currently flaky
 
 ## Lessons learned
 
@@ -103,7 +104,7 @@ See [Multi threading on Kafka Send in Spring reactor Kafka](https://stackoverflo
 
 **Local Docker with Single Kafka Broker**
 
-| Mode              | Prod-Interval | Partitions |  Plaform / Inst / Conc |  numberOfEvents |  totalSec | OPS |
+| Mode              | Prod-Interval | Partitions | Platform / Inst / Conc |  numberOfEvents |  totalSec | OPS |
 |:------------------|--------------:|-----------:|-----------------------:|----------------:|----------:|----:|
 | ProduceFlatMap    |         1 ms  |          8 | Docker (local) / 1 / 8 |           10000 |       155 |  64 |
 | ProduceConcatMap  |         1 ms  |          8 | Docker (local) / 1 / 8 |           10000 |       155 |  64 |

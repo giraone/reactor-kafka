@@ -52,7 +52,7 @@ public abstract class AbstractKafkaIntTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKafkaIntTest.class);
 
-    private static final int DEFAULT_TEST_TIMEOUT_MS = 60_000;
+    private static final int DEFAULT_TEST_TIMEOUT_MS = 20_000;
 
     protected static final KafkaContainer KAFKA = new KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.4.1"))
@@ -72,8 +72,8 @@ public abstract class AbstractKafkaIntTest {
     protected ReceiverOptions<String, String> receiverOptions;
     protected SenderOptions<String, String> senderOptions;
 
-    protected final List<List<String>> receivedMessages = new ArrayList<>(partitions);
-    protected final List<List<ConsumerRecord<String, String>>> receivedRecords = new ArrayList<>(partitions);
+    protected final List<List<String>> receivedMessagesPerPartition = new ArrayList<>(partitions);
+    protected final List<List<ConsumerRecord<String, String>>> receivedRecordsPerPartition = new ArrayList<>(partitions);
 
     protected abstract String getClientId();
 
@@ -82,6 +82,7 @@ public abstract class AbstractKafkaIntTest {
         waitForContainerStart();
         senderOptions = SenderOptions.create(producerProps(getClientId()));
         receiverOptions = createReceiverOptions(this.getClass().getSimpleName(), getClientId());
+        resetMessages();
     }
 
     @DynamicPropertySource
@@ -100,6 +101,7 @@ public abstract class AbstractKafkaIntTest {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "producer-tx-1");
         return props;
     }
 
@@ -113,6 +115,7 @@ public abstract class AbstractKafkaIntTest {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         return props;
     }
 
@@ -136,7 +139,7 @@ public abstract class AbstractKafkaIntTest {
     }
 
     protected Consumer<String, String> createConsumer(String topic) {
-        String groupId = this.getClass().getSimpleName();
+        final String groupId = this.getClass().getSimpleName() + "-" + System.nanoTime();
         return createConsumer(topic, groupId);
     }
 
@@ -160,29 +163,33 @@ public abstract class AbstractKafkaIntTest {
         waitForTopic(topic, true);
     }
 
+    protected void resetMessages() {
+        receivedMessagesPerPartition.clear();
+        receivedRecordsPerPartition.clear();
+        for (int i = 0; i < partitions; i++) {
+            receivedMessagesPerPartition.add(new ArrayList<>());
+        }
+        for (int i = 0; i < partitions; i++) {
+            this.receivedRecordsPerPartition.add(new ArrayList<>());
+        }
+    }
+
     protected void waitForTopic(String topic, boolean resetMessages) {
         waitForTopic(topic);
         if (resetMessages) {
-            receivedMessages.clear();
-            receivedRecords.clear();
-            for (int i = 0; i < partitions; i++) {
-                receivedMessages.add(new ArrayList<>());
-            }
-            for (int i = 0; i < partitions; i++) {
-                this.receivedRecords.add(new ArrayList<>());
-            }
+            resetMessages();
         }
     }
 
     protected void onReceive(ConsumerRecord<String, String> record) {
-        receivedMessages.get(record.partition()).add(record.key());
-        receivedRecords.get(record.partition()).add(record);
+        receivedMessagesPerPartition.get(record.partition()).add(record.key());
+        receivedRecordsPerPartition.get(record.partition()).add(record);
     }
 
     protected void waitForMessages(Consumer<String, String> consumer, Integer expectedCount) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Wait for {} message(s) in \"{}\".", expectedCount, consumer.assignment());
+            LOGGER.debug("Wait for {} message(s) in \"{}\".", expectedCount == null ? "any number of" : expectedCount, consumer.assignment());
         }
         int readAsMany = expectedCount != null ? expectedCount : 1_000;
         int receivedCount = 0;
@@ -261,13 +268,24 @@ public abstract class AbstractKafkaIntTest {
 
         waitForMessages(consumer, expectedMessages.size());
         final AtomicInteger i = new AtomicInteger();
-        receivedRecords.forEach(l -> l.forEach(record -> {
-            LOGGER.info(record.key() + " -> " + record.value());
-            String expectedKey = expectedMessages.get(i.get()).getT1();
-            String expectedBody = expectedMessages.get(i.getAndIncrement()).getT2();
-            assertThat(record.key()).isEqualTo(expectedKey);
-            assertThat(record.value()).isEqualTo(expectedBody);
-        }));
+        final AtomicInteger partition = new AtomicInteger();
+        receivedRecordsPerPartition.forEach(recordListOfPartition -> {
+            recordListOfPartition.forEach(record -> {
+                LOGGER.info("Partition={}: {} -> {}", partition.getAndIncrement(), record.key(), record.value());
+                String expectedKey = expectedMessages.get(i.get()).getT1();
+                String expectedBody = expectedMessages.get(i.getAndIncrement()).getT2();
+                assertThat(record.key()).isEqualTo(expectedKey);
+                assertThat(record.value()).isEqualTo(expectedBody);
+            });
+        });
+    }
+
+    protected List<ConsumerRecord<String, String>> getAllConsumerRecords() {
+
+        return receivedRecordsPerPartition.stream().reduce((a,l) -> {
+            a.addAll(l);
+            return a;
+        }).orElse(Collections.emptyList());
     }
 
     //------------------------------------------------------------------------------------------------------------------

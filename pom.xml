@@ -36,17 +36,6 @@
     <junit.utReportFolder>target/test-results/test</junit.utReportFolder>
   </properties>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>reposilite-snapshot-repository</id>
-      <url>http://localhost:9999/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>reposilite-release-repository</id>
-      <url>http://localhost:9999/releases</url>
-    </repository>
-  </distributionManagement>
-
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

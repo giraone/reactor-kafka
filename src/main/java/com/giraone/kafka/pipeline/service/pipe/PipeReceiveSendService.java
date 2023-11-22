@@ -1,25 +1,17 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-import reactor.kafka.receiver.ReceiverRecord;
-import reactor.kafka.sender.SenderRecord;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
-public class PipeDedupService extends AbstractPipeService {
+public class PipeReceiveSendService extends AbstractPipeService {
 
-    private final Set<String> lastRecords = new HashSet<>();
-
-    public PipeDedupService(
+    public PipeReceiveSendService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
@@ -36,29 +28,17 @@ public class PipeDedupService extends AbstractPipeService {
         subscription = this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(buildScheduler())
-            .doOnNext(this::logReceived)
-            // perform the pipe task: check for duplicates, send non-duplicates and commit in any case
-            .flatMap(this::check, applicationProperties.getConsumer().getConcurrency(), 1)
+            // perform the pipe task
+            .flatMap(this::process, applicationProperties.getConsumer().getConcurrency(), 1)
+            // send result to target topic
+            .flatMap(this::send)
+            // commit every processed record
+            .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
             // log any error
-            .doOnError(e -> counterService.logError("PipeDedupService failed!", e))
+            .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
         counterService.logMainLoopStarted();
-    }
-
-    protected Mono<ReceiverRecord<String, String>> check(ReceiverRecord<String, String> inputRecord) {
-
-        final String key = inputRecord.key();
-        if (lastRecords.contains(key)) {
-            counterService.logRateDuplicates(inputRecord.partition(), inputRecord.offset());
-            return commit(inputRecord);
-        } else {
-            lastRecords.add(key);
-            // send unique result to target topic
-            return send(SenderRecord.create(new ProducerRecord<>(getTopicOutput(), key, inputRecord.value()), inputRecord.receiverOffset()))
-                .map(senderResult -> inputRecord)
-                .flatMap(this::commit);
-        }
     }
 
     @EventListener

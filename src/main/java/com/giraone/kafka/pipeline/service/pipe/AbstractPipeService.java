@@ -1,6 +1,8 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import com.giraone.kafka.pipeline.service.AbstractService;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;

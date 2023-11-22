@@ -94,19 +94,19 @@ public class CounterService {
         counterMainLoopStopped.increment();
     }
 
-    long getCounterProduced() {
+    public long getCounterProduced() {
         return (long) this.counterProduced.count();
     }
 
-    long getCounterSent() {
+    public long getCounterSent() {
         return (long) this.counterSent.count();
     }
 
-    long getCounterReceived() {
+    public long getCounterReceived() {
         return (long) this.counterReceived.count();
     }
 
-    long getCounterDuplicates() {
+    public long getCounterDuplicates() {
         return (long) this.counterDuplicates.count();
     }
 

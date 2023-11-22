@@ -1,6 +1,5 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.produce;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -14,10 +13,8 @@ class ProduceFlatMapServiceIntTest extends ProduceServiceIntTest {
         return "ProduceFlatMapServiceIntTest";
     }
 
-    @Disabled
     @Test
     void eventsAreProduced() throws InterruptedException {
-
         super.eventsAreProduced();
     }
 }

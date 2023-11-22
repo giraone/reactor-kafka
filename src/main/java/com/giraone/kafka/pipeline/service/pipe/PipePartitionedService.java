@@ -1,6 +1,7 @@
-package com.giraone.kafka.pipeline.service;
+package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
+import com.giraone.kafka.pipeline.service.CounterService;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
