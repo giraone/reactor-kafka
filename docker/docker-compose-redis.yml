@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+
+  redis:
+    image: redis:7.2.4-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    # --save 20 1: save a snapshot of the DB every 20 seconds or if at least 1 write operation was performed
+    # --requirepass secret: Use a password
+    volumes:
+      - ${CONTAINER_DATA:-./data}/redis/data:/data
+    networks:
+      - kafka
+
+#  redisinsight:
+#    image: redislabs/redisinsight:latest
+#    hostname: redisinsight
+#    ports:
+#      - '8001:8001'
+#    container_name: redisinsight
+#    volumes:
+#      - ${CONTAINER_DATA:-./data}/redisinsight/data:/db
+#    environment:
+#      RI_LOG_LEVEL: "INFO"
+#    networks:
+#      - kafka
+
+networks:
+  kafka:

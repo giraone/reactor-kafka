@@ -16,7 +16,7 @@ import java.util.Map;
  * The controller exists only to enable a smoke test for the Spring Boot configuration.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/ping")
 public class PingApiController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PingApiController.class);
@@ -32,7 +32,7 @@ public class PingApiController {
      *
      * @return the ResponseEntity with status 200 (OK) and { "status"; "OK" } as body data
      */
-    @GetMapping("/ping")
+    @GetMapping
     public Mono<ResponseEntity<Map<String, String>>> getPingStatus() {
 
         return pingService.getOkString()

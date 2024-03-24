@@ -30,6 +30,10 @@ spring:
   application:
     name: 'pipe-test'
     mode: 'Pipe'
+  # we use test containers, for integration tests
+  redis:
+    host: 127.0.0.1
+    port: 6379
 
 application:
   mode: 'PipeReceiveSend' # we need a default!
@@ -37,3 +41,6 @@ application:
   topic-b: 'btest'
   producer-variables:
     max-number-of-events: 10
+  lookup:
+    in-memory: false # Test containers are used in test
+    ttl: 'PT2S'

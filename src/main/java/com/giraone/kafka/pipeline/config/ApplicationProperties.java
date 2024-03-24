@@ -84,6 +84,10 @@ public class ApplicationProperties {
      * Kafka producer properties.
      */
     private ProducerVariables producerVariables = new ProducerVariables();
+    /**
+     * Kafka producer properties.
+     */
+    private LookupProperties lookup = new LookupProperties();
 
     @SuppressWarnings("java:S2629") // invoke conditionally
     @PostConstruct
@@ -138,7 +142,6 @@ public class ApplicationProperties {
         }
     }
 
-
     @Setter
     @Getter
     @NoArgsConstructor
@@ -147,5 +150,20 @@ public class ApplicationProperties {
     public static class HostAndPort {
         private String host = "localhost";
         private int port = 3100;
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @ToString
+    public static class LookupProperties {
+        /**
+         * Implementation: false = redis; true = in memory HashMap
+         */
+        private boolean inMemory = false;
+        /**
+         * Time to live (TTL) for the lookup entries. Default is 60 seconds.
+         **/
+        private Duration ttl = Duration.ofSeconds(60);
     }
 }

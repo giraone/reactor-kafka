@@ -35,6 +35,9 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       group-id: reactor-kafka
+  redis:
+    host: 127.0.0.1
+    port: 6379
   jmx:
     enabled: true
 
@@ -49,6 +52,8 @@ application:
     fetch-max-bytes: 52428800 # Default 52428800.
     max-partition-fetch-bytes: 1048576 # Default 1048576.
     fetch-max-wait-ms: '500ms' # Default 500ms.
+  lookup:
+    in-memory: false
   loki:
     host: localhost
     port: 3100

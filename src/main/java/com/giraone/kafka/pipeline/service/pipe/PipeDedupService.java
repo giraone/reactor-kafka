@@ -2,6 +2,7 @@ package com.giraone.kafka.pipeline.service.pipe;
 
 import com.giraone.kafka.pipeline.config.ApplicationProperties;
 import com.giraone.kafka.pipeline.service.CounterService;
+import com.giraone.kafka.pipeline.util.lookup.LookupService;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
@@ -12,21 +13,20 @@ import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.ReceiverRecord;
 import reactor.kafka.sender.SenderRecord;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Service
 public class PipeDedupService extends AbstractPipeService {
 
-    private final Set<String> lastRecords = new HashSet<>();
+    private final LookupService lookupService;
 
     public PipeDedupService(
         ApplicationProperties applicationProperties,
         CounterService counterService,
         ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
-        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate
+        ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate,
+        LookupService lookupService
     ) {
         super(applicationProperties, counterService, reactiveKafkaProducerTemplate, reactiveKafkaConsumerTemplate);
+        this.lookupService = lookupService;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -50,17 +50,23 @@ public class PipeDedupService extends AbstractPipeService {
     protected Mono<ReceiverRecord<String, String>> check(ReceiverRecord<String, String> inputRecord) {
 
         final String key = inputRecord.key();
-        if (lastRecords.contains(key)) {
-            LOGGER.info("Duplicate key {} detected", key);
-            counterService.logRateDuplicates(inputRecord.partition(), inputRecord.offset());
-            return commit(inputRecord);
-        } else {
-            lastRecords.add(key);
-            // send unique result to target topic
-            return send(SenderRecord.create(new ProducerRecord<>(getTopicOutput(), key, inputRecord.value()), inputRecord.receiverOffset()))
-                .map(senderResult -> inputRecord)
-                .flatMap(this::commit);
-        }
+        return lookupService.lookup(key)
+            .flatMap(foundValue -> {
+                if (foundValue != null) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Duplicate key \"{}\" detected, that was {} ms old", key, (System.currentTimeMillis() - Long.parseLong(foundValue)));
+                    }
+                    counterService.logRateDuplicates(inputRecord.partition(), inputRecord.offset());
+                    return commit(inputRecord);
+                } else {
+                    // We use timestamp here (because of log how old the entry was) - but true/false maybe OK also
+                    lookupService.put(key, Long.toString(System.currentTimeMillis()));
+                    // send unique result to target topic
+                    return send(SenderRecord.create(new ProducerRecord<>(getTopicOutput(), key, inputRecord.value()), inputRecord.receiverOffset()))
+                        .map(senderResult -> inputRecord)
+                        .flatMap(this::commit);
+                }
+            });
     }
 
     @EventListener

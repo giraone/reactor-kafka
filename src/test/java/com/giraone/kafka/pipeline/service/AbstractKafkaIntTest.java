@@ -282,7 +282,7 @@ public abstract class AbstractKafkaIntTest {
 
     protected List<ConsumerRecord<String, String>> getAllConsumerRecords() {
 
-        return receivedRecordsPerPartition.stream().reduce((a,l) -> {
+        return receivedRecordsPerPartition.stream().reduce((a, l) -> {
             a.addAll(l);
             return a;
         }).orElse(Collections.emptyList());

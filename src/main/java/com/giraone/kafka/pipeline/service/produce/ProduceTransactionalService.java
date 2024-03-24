@@ -46,13 +46,13 @@ public class ProduceTransactionalService extends AbstractProduceService {
         counterService.logMainLoopStarted();
     }
 
-    private Mono<SenderResult<Void>> send(Tuple2<String,String> tuple) {
+    private Mono<SenderResult<Void>> send(Tuple2<String, String> tuple) {
         final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicOutput, tuple.getT1(), tuple.getT2());
         return reactiveKafkaProducerTemplate.send(producerRecord)
             .doOnNext(senderResult -> counterService.logRateSent(senderResult.recordMetadata().partition(), senderResult.recordMetadata().offset()));
     }
 
-    private Mono<SenderResult<Void>> send(List<Tuple2<String,String>> listOfTuple) {
+    private Mono<SenderResult<Void>> send(List<Tuple2<String, String>> listOfTuple) {
         return listOfTuple.stream().map(this::send).reduce((all, element) -> element).orElse(Mono.empty());
     }
 }

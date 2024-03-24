@@ -8,6 +8,7 @@ Basically the topology is
 - there is a producer (mode = `produce`)
 - there is a processor (mode = `pipe`)
 - there is a consumer (mode = `consume`)
+- `[optional]:` an additional pipe service that run to support de-duplication based on a (*Redis*) cache (mode = `dedup`)
 
 The application code contains all modes (environment variable `APPLICATION_MODE`) in one application:
 
@@ -64,10 +65,22 @@ There are 8 containers
 - consume
 - Kafka Zookeeper
 - Kafka Broker
+- Redis
+- RedisInsight
 - Prometheus - metrics collector
 - Loki - log storage
 - Grafana - metrics visualization
 
+## Redis
+
+```bash
+$ curl --request GET http://localhost:9082/api/lookup/k1
+v1
+$ curl --request PUT --data "v3" http://localhost:9082/api/lookup/k3 --header "Content-Type: text/plain"
+true
+$ curl http://localhost:9082/api/lookup
+k1=v1;k3=v3;k2=v2;
+```
 ## Testing
 
 - For integration testing *Kafka Testcontainers* are used.
