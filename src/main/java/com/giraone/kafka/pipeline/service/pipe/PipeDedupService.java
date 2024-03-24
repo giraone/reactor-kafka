@@ -34,7 +34,7 @@ public class PipeDedupService extends AbstractPipeService {
     @Override
     public void start() {
 
-        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
+        LOGGER.info("Assembly of {}", this.getClass().getSimpleName());
         subscription = this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(buildScheduler())

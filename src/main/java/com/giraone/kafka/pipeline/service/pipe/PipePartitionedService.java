@@ -24,7 +24,7 @@ public class PipePartitionedService extends AbstractPipeService {
     @Override
     public void start() { // receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
 
-        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
+        LOGGER.info("Assembly of {}", this.getClass().getSimpleName());
         this.receiveWithRetry()
             // group by partition to guarantee ordering
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())

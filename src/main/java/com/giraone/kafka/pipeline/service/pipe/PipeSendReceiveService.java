@@ -23,7 +23,7 @@ public class PipeSendReceiveService extends AbstractPipeService {
     @Override
     public void start() {
 
-        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
+        LOGGER.info("Assembly of {}", this.getClass().getSimpleName());
         reactiveKafkaProducerTemplate
             .send(
                 reactiveKafkaConsumerTemplate.receive()
