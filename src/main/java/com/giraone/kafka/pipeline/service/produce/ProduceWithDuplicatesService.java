@@ -23,9 +23,9 @@ public class ProduceWithDuplicatesService extends AbstractProduceService {
     @Override
     public void start() {
 
-        LOGGER.info("STARTING to produce {} events using ProduceWithDuplicatesService.", maxNumberOfEvents);
         final long start = System.currentTimeMillis();
-        sourceHotWithDuplicates(applicationProperties.getProduceInterval(), maxNumberOfEvents)
+        sourceHotWithDuplicates(applicationProperties.getProduceInterval(),
+            maxNumberOfEvents, applicationProperties.getProducerVariables().getDuplicatePercentage())
             // A scheduler is needed - a single or parallel(1) is OK
             .publishOn(schedulerForKafkaProduce)
             .flatMap(tuple -> {
@@ -39,6 +39,6 @@ public class ProduceWithDuplicatesService extends AbstractProduceService {
                     (System.currentTimeMillis() - start) / 1000L);
                 disposeGracefully();
             });
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 }

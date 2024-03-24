@@ -33,7 +33,7 @@ public class ConsumeService extends AbstractService {
             .map(this::commit)
             .doOnError(e -> counterService.logError("ConsumeService failed!", e))
             .subscribe(null, counterService::logMainLoopError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 
 

@@ -63,13 +63,13 @@ public abstract class AbstractProduceService extends AbstractService {
             .doOnNext(t -> counterService.logRateProduced());
     }
 
-    protected Flux<Tuple2<String, String>> sourceHotWithDuplicates(Duration delay, int limit) {
+    protected Flux<Tuple2<String, String>> sourceHotWithDuplicates(Duration delay, int limit, float duplicatePercentage) {
         final Random random = new Random();
         final AtomicInteger counter = new AtomicInteger((int) (System.currentTimeMillis() / 1000L));
         return Flux.range(0, limit)
             .delayElements(delay, schedulerForGenerateNumbers)
             .map(ignored -> {
-                if (random.nextInt(100) == 0) {
+                if (random.nextFloat() >= duplicatePercentage) {
                     LOGGER.info("Duplicate key {} produced", counter.get());
                     return counter.get();
                 } else {

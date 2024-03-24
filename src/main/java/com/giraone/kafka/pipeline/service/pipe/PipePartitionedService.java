@@ -24,6 +24,7 @@ public class PipePartitionedService extends AbstractPipeService {
     @Override
     public void start() { // receive().groupBy(partition).flatMap(r -> send(transform(r)).sample().concatMap(s -> s.commit())
 
+        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
         this.receiveWithRetry()
             // group by partition to guarantee ordering
             .groupBy(receiverRecord -> receiverRecord.receiverOffset().topicPartition())
@@ -43,6 +44,6 @@ public class PipePartitionedService extends AbstractPipeService {
             .doOnError(e -> counterService.logError("PipePartitionedService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 }

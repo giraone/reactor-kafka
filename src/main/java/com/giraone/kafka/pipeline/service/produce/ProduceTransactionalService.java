@@ -43,7 +43,7 @@ public class ProduceTransactionalService extends AbstractProduceService {
                     (System.currentTimeMillis() - start) / 1000L);
                 disposeGracefully();
             });
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 
     private Mono<SenderResult<Void>> send(Tuple2<String, String> tuple) {

@@ -25,6 +25,7 @@ public class PipeReceiveSendService extends AbstractPipeService {
     @Override
     public void start() {
 
+        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
         subscription = this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(buildScheduler())
@@ -38,7 +39,7 @@ public class PipeReceiveSendService extends AbstractPipeService {
             .doOnError(e -> counterService.logError("PipeReceiveSendService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 
     @EventListener

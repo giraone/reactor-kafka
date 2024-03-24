@@ -3,6 +3,7 @@ package com.giraone.kafka.pipeline.web.rest;
 import com.giraone.kafka.pipeline.util.lookup.LookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api")
+@ConditionalOnProperty(prefix = "application", name = "mode", havingValue = "PipeDedup")
 public class RedisTestController {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(RedisTestController.class);

@@ -39,6 +39,6 @@ public class ProduceConcatMapService extends AbstractProduceService {
                     (System.currentTimeMillis() - start) / 1000L);
                 disposeGracefully();
             });
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 }

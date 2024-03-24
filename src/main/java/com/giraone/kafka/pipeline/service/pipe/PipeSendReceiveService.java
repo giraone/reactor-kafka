@@ -23,6 +23,7 @@ public class PipeSendReceiveService extends AbstractPipeService {
     @Override
     public void start() {
 
+        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
         reactiveKafkaProducerTemplate
             .send(
                 reactiveKafkaConsumerTemplate.receive()
@@ -39,6 +40,6 @@ public class PipeSendReceiveService extends AbstractPipeService {
             .doOnError(e -> counterService.logError("PipeSendReceiveService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 }

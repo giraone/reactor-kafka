@@ -84,8 +84,8 @@ public class CounterService {
         counterError.increment();
     }
 
-    public void logMainLoopStarted() {
-        LOGGER.info("Main loop started!");
+    public void logMainLoopStarted(String className) {
+        LOGGER.info("Main loop of {} started!", className);
         counterMainLoopStarted.increment();
     }
 

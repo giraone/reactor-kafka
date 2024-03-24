@@ -120,6 +120,10 @@ public class ApplicationProperties {
          * Maximum number of events, that are produced. Default = 1_000_000.
          **/
         private int maxNumberOfEvents = 1_000_000;
+        /**
+         * Percentage on duplicate messages (same key, same content).
+         **/
+        private float duplicatePercentage = 0.0F;
     }
 
 

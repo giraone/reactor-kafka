@@ -34,6 +34,7 @@ public class PipeDedupService extends AbstractPipeService {
     @Override
     public void start() {
 
+        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
         subscription = this.receiveWithRetry()
             // perform processing on another scheduler
             .publishOn(buildScheduler())
@@ -44,12 +45,13 @@ public class PipeDedupService extends AbstractPipeService {
             .doOnError(e -> counterService.logError("PipeDedupService failed!", e))
             // subscription main loop - restart on unhandled errors
             .subscribe(null, this::restartMainLoopOnError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 
     protected Mono<ReceiverRecord<String, String>> check(ReceiverRecord<String, String> inputRecord) {
 
         final String key = inputRecord.key();
+        LOGGER.debug("Received key {}", key);
         return lookupService.lookup(key)
             .flatMap(foundValue -> {
                 if (foundValue != null) {

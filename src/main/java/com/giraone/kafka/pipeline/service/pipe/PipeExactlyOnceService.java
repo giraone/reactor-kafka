@@ -27,6 +27,7 @@ public class PipeExactlyOnceService extends AbstractPipeService {
     @Override
     public void start() {
 
+        LOGGER.info("Assembly of service {}", this.getClass().getSimpleName());
         // TODO: unclear, if this is correct
         final TransactionManager transactionManager = reactiveKafkaProducerTemplate.transactionManager();
         reactiveKafkaConsumerTemplate.receiveExactlyOnce(transactionManager)
@@ -39,6 +40,6 @@ public class PipeExactlyOnceService extends AbstractPipeService {
                 return transactionManager.abort().then(Mono.error(e));
             })
             .subscribe(null, this::restartMainLoopOnError);
-        counterService.logMainLoopStarted();
+        counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 }
