@@ -49,6 +49,20 @@ services:
       # CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       # CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: "PLAIN"
 
+  redis:
+    image: redis:7.2.4-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    # --save 20 1: save a snapshot of the DB every 20 seconds or if at least 1 write operation was performed
+    # --requirepass secret: Use a password
+    volumes:
+      - ${CONTAINER_DATA:-./data}/redis/data:/data
+    networks:
+      - kafka
+
   prometheus:
     image: prom/prometheus
     hostname: prometheus
@@ -95,31 +109,57 @@ services:
     ports:
       - "3000:3000"
 
-#  produce:
+  produce:
+    image: reactor-kafka
+    hostname: produce
+    container_name: produce
+    depends_on:
+      - kafka-1
+      - loki
+    networks:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_APPLICATION_NAME=produce # the name is shown in the log and used in metrics
+      - SPRING_PROFILES_ACTIVE=docker
+      - APPLICATION_MODE=ProduceSendSource
+      - APPLICATION_PRODUCE_INTERVAL=100ms
+      - APPLICATION_TOPIC_A=a8
+
+#  pipe:
 #    image: reactor-kafka
-#    hostname: produce
-#    container_name: produce
+#    hostname: pipe
+#    container_name: pipe
 #    depends_on:
 #      - kafka-1
 #      - loki
 #    networks:
 #      - kafka
 #    ports:
-#      - "8081:8080"
+#      - "8082:8080"
 #    environment:
-#      - SPRING_APPLICATION_NAME=produce # the name is shown in the log and used in metrics
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - APPLICATION_MODE=ProduceSendSource
-#      - APPLICATION_PRODUCE_INTERVAL=100ms
+#      - SPRING_APPLICATION_NAME=pipe # the name is shown in the log and used in metrics
+#      - SPRING_PROFILES_ACTIVE=docker,loki
+#      - APPLICATION_MODE=PipePartitioned
 #      - APPLICATION_TOPIC_A=a8
+#      - APPLICATION_TOPIC_B=b8
+#      - APPLICATION_CONSUMER_GROUP_ID=pipe-docker3
+#      - APPLICATION_PROCESSING_TIME=0ms
+#      - APPLICATION_CONSUMER_SCHEDULER_TYPE=newParallel
+#      - APPLICATION_CONSUMER_MAX_POLL_RECORDS=1
+#      - APPLICATION_CONSUMER_MAX_POLL_INTERVAL=300s
+#      - APPLICATION_LOKI_HOST=loki
+#      - APPLICATION_LOKI_PORT=3100
 
-  pipe:
+  dedup:
     image: reactor-kafka
-    hostname: pipe
-    container_name: pipe
+    hostname: dedup
+    container_name: dedup
     depends_on:
       - kafka-1
       - loki
+      - redis
     networks:
       - kafka
     ports:
@@ -127,7 +167,7 @@ services:
     environment:
       - SPRING_APPLICATION_NAME=pipe # the name is shown in the log and used in metrics
       - SPRING_PROFILES_ACTIVE=docker,loki
-      - APPLICATION_MODE=PipePartitioned
+      - APPLICATION_MODE=PipeDedup
       - APPLICATION_TOPIC_A=a8
       - APPLICATION_TOPIC_B=b8
       - APPLICATION_CONSUMER_GROUP_ID=pipe-docker3
@@ -138,23 +178,23 @@ services:
       - APPLICATION_LOKI_HOST=loki
       - APPLICATION_LOKI_PORT=3100
 
-#  consume:
-#    image: reactor-kafka
-#    hostname: consume
-#    container_name: consume
-#    depends_on:
-#      - kafka-1
-#      - loki
-#    networks:
-#      - kafka
-#    ports:
-#      - "8083:8080"
-#    environment:
-#      - SPRING_APPLICATION_NAME=consume # the name is shown in the log and used in metrics
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - APPLICATION_MODE=Consume
-#      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
-#      - APPLICATION_TOPIC_B=b8
+  consume:
+    image: reactor-kafka
+    hostname: consume
+    container_name: consume
+    depends_on:
+      - kafka-1
+      - loki
+    networks:
+      - kafka
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_APPLICATION_NAME=consume # the name is shown in the log and used in metrics
+      - SPRING_PROFILES_ACTIVE=docker
+      - APPLICATION_MODE=Consume
+      - APPLICATION_CONSUMER_GROUP_ID=consume-docker
+      - APPLICATION_TOPIC_B=b8
 
 networks:
   kafka:

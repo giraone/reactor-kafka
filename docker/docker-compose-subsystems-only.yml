@@ -48,6 +48,20 @@ services:
       # CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       # CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: "PLAIN"
 
+  redis:
+    image: redis:7.2.4-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    container_name: redis
+    command: redis-server --save 20 1 --loglevel warning
+    # --save 20 1: save a snapshot of the DB every 20 seconds or if at least 1 write operation was performed
+    # --requirepass secret: Use a password
+    volumes:
+      - ${CONTAINER_DATA:-./data}/redis/data:/data
+    networks:
+      - kafka
+
   prometheus:
     image: prom/prometheus
     hostname: prometheus

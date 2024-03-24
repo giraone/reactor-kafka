@@ -69,7 +69,7 @@ public abstract class AbstractProduceService extends AbstractService {
         return Flux.range(0, limit)
             .delayElements(delay, schedulerForGenerateNumbers)
             .map(ignored -> {
-                if (random.nextFloat() >= duplicatePercentage) {
+                if (random.nextFloat() < duplicatePercentage) {
                     LOGGER.info("Duplicate key {} produced", counter.get());
                     return counter.get();
                 } else {

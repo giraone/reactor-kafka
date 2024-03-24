@@ -50,11 +50,11 @@ public class ApplicationProperties {
      */
     private String mode = MODE_PIPE;
     /**
-     * First topic between producer and pipe.
+     * Output topic of producers - - - input topic of consumers or pipes.
      */
     private String topicA = DEFAULT_TOPIC_A;
     /**
-     * Second topic between producer and pipe.
+     * Empty for producers AND consumers - - - output topic of pipes.
      */
     private String topicB = DEFAULT_TOPIC_B;
     /**

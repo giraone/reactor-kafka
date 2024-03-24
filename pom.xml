@@ -23,7 +23,6 @@
     <reactor.kafka.version>1.3.22</reactor.kafka.version>
     <loki-logback-appender.version>1.4.1</loki-logback-appender.version>
     <!-- Test dependency versions -->
-    <assertj.version>3.25.3</assertj.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     <reactor-tools.version>3.6.4</reactor-tools.version>
     <!-- Plugin versions and properties -->
@@ -139,7 +138,6 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
 

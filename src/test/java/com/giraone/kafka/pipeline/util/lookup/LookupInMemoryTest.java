@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class LookupMemoryTest {
+class LookupInMemoryTest {
 
-    private LookupMemory lookupService = new LookupMemory();
+    private LookupInMemory lookupService = new LookupInMemory();
 
     @Test
     void lookup() {

@@ -28,7 +28,7 @@ Solution Pipe 2 and Pipe 3 do not start, when there are older events in the inpu
 ### Build and Run
 
 ```shell
-mvn package
+mvn -Ploki package
 dockerize.sh
 cd docker
 
@@ -40,7 +40,7 @@ docker-compose -f docker-compose-subsystems-only.yml up -d
 ./kafka-create-topics.sh
 cd ..
 ./consume.sh
-./pipe.sh
+./pipe.sh  OR  ./dedup.sh
 ./produce.sh
 ```
 

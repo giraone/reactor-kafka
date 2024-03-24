@@ -1,16 +1,15 @@
 package com.giraone.kafka.pipeline.util.lookup;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
-@ConditionalOnProperty(prefix = "application.lookup", name = "in-memory", havingValue = "true")
-public class LookupMemory implements LookupService {
+/**
+ * In-Memory implementation for lookup
+ */
+public class LookupInMemory implements LookupService {
 
     private final Map<String, String> map = new HashMap<>();
 

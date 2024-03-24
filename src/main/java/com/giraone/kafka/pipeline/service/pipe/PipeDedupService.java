@@ -39,8 +39,10 @@ public class PipeDedupService extends AbstractPipeService {
             // perform processing on another scheduler
             .publishOn(buildScheduler())
             .doOnNext(this::logReceived)
-            // perform the pipe task: check for duplicates, send non-duplicates and commit in any case
-            .flatMap(this::check, applicationProperties.getConsumer().getConcurrency(), 1)
+            // perform the pipe task: check for duplicates, send non-duplicates
+            .flatMap(this::checkAndSendIfUnique, applicationProperties.getConsumer().getConcurrency(), 1)
+            // commit every processed record
+            .flatMap(this::commit, applicationProperties.getConsumer().getConcurrency(), 1)
             // log any error
             .doOnError(e -> counterService.logError("PipeDedupService failed!", e))
             // subscription main loop - restart on unhandled errors
@@ -48,25 +50,27 @@ public class PipeDedupService extends AbstractPipeService {
         counterService.logMainLoopStarted(getClass().getSimpleName());
     }
 
-    protected Mono<ReceiverRecord<String, String>> check(ReceiverRecord<String, String> inputRecord) {
+    protected Mono<ReceiverRecord<String, String>> checkAndSendIfUnique(ReceiverRecord<String, String> inputRecord) {
 
         final String key = inputRecord.key();
         LOGGER.debug("Received key {}", key);
         return lookupService.lookup(key)
             .flatMap(foundValue -> {
                 if (foundValue != null) {
+                    // Log and document metric
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info("Duplicate key \"{}\" detected, that was {} ms old", key, (System.currentTimeMillis() - Long.parseLong(foundValue)));
                     }
                     counterService.logRateDuplicates(inputRecord.partition(), inputRecord.offset());
-                    return commit(inputRecord);
+                    // return the received record, that is used for the commit
+                    return Mono.just(inputRecord);
                 } else {
                     // We use timestamp here (because of log how old the entry was) - but true/false maybe OK also
                     lookupService.put(key, Long.toString(System.currentTimeMillis()));
                     // send unique result to target topic
                     return send(SenderRecord.create(new ProducerRecord<>(getTopicOutput(), key, inputRecord.value()), inputRecord.receiverOffset()))
-                        .map(senderResult -> inputRecord)
-                        .flatMap(this::commit);
+                        // return the received record, that is used for the commit
+                        .map(senderResult -> inputRecord);
                 }
             });
     }

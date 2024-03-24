@@ -25,7 +25,7 @@ public class ProduceWithDuplicatesService extends AbstractProduceService {
 
         final long start = System.currentTimeMillis();
         sourceHotWithDuplicates(applicationProperties.getProduceInterval(),
-            maxNumberOfEvents, applicationProperties.getProducerVariables().getDuplicatePercentage())
+            maxNumberOfEvents, applicationProperties.getProducerVariables().getDuplicatePercentage() / 100.0f)
             // A scheduler is needed - a single or parallel(1) is OK
             .publishOn(schedulerForKafkaProduce)
             .flatMap(tuple -> {
