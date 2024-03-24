@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for topic in a1 b1
+for topic in a1 b1 c1
 do
   echo "Create $topic"
   docker exec -it kafka-1 kafka-topics \
@@ -11,7 +11,7 @@ do
     --partitions 1
 done
 
-for topic in a8 b8
+for topic in a8 b8 c8
 do
   echo "Create $topic"
   docker exec -it kafka-1 kafka-topics \
