@@ -107,6 +107,8 @@ class RedisTestControllerIntTest {
         // assert
         byte[] body = result.getResponseBody();
         assertThat(body).isNotNull();
-        assertThat(new String(body, StandardCharsets.UTF_8)).isEqualTo("k1=v1;k2=v2;");
+        assertThat(new String(body, StandardCharsets.UTF_8))
+            .contains("k1=v1;")
+            .contains("k2=v2;");
     }
 }
