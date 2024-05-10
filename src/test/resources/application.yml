@@ -43,4 +43,4 @@ application:
     max-number-of-events: 10
   lookup:
     in-memory: false # Test containers are used in test
-    ttl: 'PT2S'
+    ttl: 'PT5S'
