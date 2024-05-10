@@ -55,8 +55,8 @@ public abstract class AbstractKafkaIntTest {
     private static final int DEFAULT_TEST_TIMEOUT_MS = 20_000;
 
     protected static final KafkaContainer KAFKA = new KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.4.1"))
-        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.4.1")
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.1"))
+        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.6.1")
         //    .asCompatibleSubstituteFor("confluentinc/cp-kafka"))
         .withNetwork(null)
         .withEnv("KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", "1")
@@ -152,7 +152,7 @@ public abstract class AbstractKafkaIntTest {
         ) {
             adminClient.createTopics(List.of(new NewTopic(topic, partitions, (short) 1)))
                 .all()
-                .get(10, TimeUnit.SECONDS);
+                .get(DEFAULT_TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             if (e.getCause() != null && e.getCause() instanceof TopicExistsException) {
                 LOGGER.warn(e.getMessage() + " " + e.getClass());
