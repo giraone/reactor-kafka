@@ -7,6 +7,10 @@ import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 import reactor.kafka.sender.SenderRecord;
 
+/**
+ * A producer which also creates duplicate events, that can be detected by
+ * the {@link com.giraone.kafka.pipeline.service.pipe.PipeDedupService}.
+ */
 @Service
 public class ProduceWithDuplicatesService extends AbstractProduceService {
 

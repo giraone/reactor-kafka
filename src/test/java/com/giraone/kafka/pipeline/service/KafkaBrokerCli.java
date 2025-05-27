@@ -3,15 +3,15 @@ package com.giraone.kafka.pipeline.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
-import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 public class KafkaBrokerCli {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaBrokerCli.class);
 
-    private KafkaContainer kafka;
+    private ConfluentKafkaContainer kafka;
 
-    public KafkaBrokerCli(KafkaContainer kafka) {
+    public KafkaBrokerCli(ConfluentKafkaContainer kafka) {
         this.kafka = kafka;
     }
 

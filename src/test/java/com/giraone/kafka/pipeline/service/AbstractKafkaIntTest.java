@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.receiver.internals.ConsumerFactory;
@@ -54,9 +54,9 @@ public abstract class AbstractKafkaIntTest {
 
     private static final int DEFAULT_TEST_TIMEOUT_MS = 20_000;
 
-    protected static final KafkaContainer KAFKA = new KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.6.1"))
-        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.6.1")
+    protected static final ConfluentKafkaContainer  KAFKA = new ConfluentKafkaContainer(
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.5"))
+        // DockerImageName.parse("confluentinc/cp-enterprise-kafka:7.6.5")
         //    .asCompatibleSubstituteFor("confluentinc/cp-kafka"))
         .withNetwork(null)
         .withEnv("KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", "1")

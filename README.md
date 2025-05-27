@@ -13,6 +13,9 @@ Basically the topology is
 The application code contains all modes (environment variable `APPLICATION_MODE`) in one application:
 
 - Producer (periodic source, Kafka sink)
+  1. Using `source().concatMap(event -> reactiveKafkaProducerTemplate.send(event))` (see [ProduceConcatMapService](src/main/java/com/giraone/kafka/pipeline/service/produce/ProduceConcatMapService.java))
+  2. Using `source().flatMap(event -> reactiveKafkaProducerTemplate.send(event))` (see [ProduceFlatMapService](src/main/java/com/giraone/kafka/pipeline/service/produce/ProduceFlatMapService.java))
+  3. Using `reactiveKafkaProducerTemplate.send(source())` (see [ProduceSendSourceService](src/main/java/com/giraone/kafka/pipeline/service/produce/ProduceSendSourceService.java))
 - Pipe (Kafka source, Kafka sink)
   1. Pipe with `send(receive().map(r -> transform(r)))` (PipeSendReceive)
   2. Pipe with `receive().flatMap(r -> send(transform(r))` (PipeReceiveSend)

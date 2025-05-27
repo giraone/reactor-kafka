@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 /**
- * A reactive service proivding a "lookup table" (basically a <code>Map<String,String></code>)
+ * A reactive service providing a "lookup table" (basically a <code>Map<String,String></code>)
  */
 @Service
 public interface LookupService {
@@ -24,7 +24,7 @@ public interface LookupService {
     /**
      * Lookup a value by its key
      *
-     * @param key the key for which the value lookep up
+     * @param key the key for which the value looked up
      * @return a value or Mono.void()
      */
     Mono<String> lookup(String key);
