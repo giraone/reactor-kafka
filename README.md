@@ -187,7 +187,7 @@ Total rate with 4 partitions approx. **1.000.000 events per second**.
 
 ## Config
 
-- [KafkaProducerConfig](src/main/java/com/giraone/kafka/pipe/config/KafkaProducerConfig.java)
-- [KafkaConsumerConfig](src/main/java/com/giraone/kafka/pipe/config/KafkaConsumerConfig.java)
+- [KafkaProducerConfig](src/main/java/com/giraone/kafka/pipeline/config/KafkaProducerConfig.java)
+- [KafkaConsumerConfig](src/main/java/com/giraone/kafka/pipeline/config/KafkaConsumerConfig.java)
 - [application.yml](src/main/resources/application.yml)
 - [pom.xml](pom.xml)
